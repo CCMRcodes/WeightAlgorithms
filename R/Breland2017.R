@@ -4,6 +4,13 @@
 # 
 # Author: Richard Ryan Evans
 # Development Start Date: 11/07/2018
+#
+# Algorithm reconstructed from methods section in the publication:
+# Breland JY, Phibbs CS, Hoggatt KJ, et al. The obesity epidemic in the veterans
+# health administration: Prevalence among key populations of women and men
+# veterans. Journal of General Internal Medicine [electronic article].
+# 2017;32(1):11-17. (http://link.springer.com/10.1007/s11606-016-3962-1).
+# (Accessed December 6, 2019)
 # 
 # Rationale: For grouped time series, (e.g., per person)
 #            Examine ratios of forward and backward measurements per person,

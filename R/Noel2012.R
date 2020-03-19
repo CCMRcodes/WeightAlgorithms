@@ -4,6 +4,12 @@
 # 
 # Author: Richard Ryan Evans
 # Development Start Date: 04/22/2019
+#
+# Algorithm reconstructed from methods section in the publication:
+# Noel PH, Wang C-P, Bollinger MJ, et al. Intensity and duration of obesity-
+# related counseling: Association with 5-year bmi trends among obese primary 
+# care patients. Obesity [electronic article]. 2012;20(4):773–782. 
+# (http://doi.wiley.com/10.1038/oby.2011.335). (Accessed December 6, 2019)
 # 
 # Rationale: For grouped time series, (e.g., per person), collect all
 #            measurements within a certain time frame, then break those down

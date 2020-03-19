@@ -4,6 +4,14 @@
 # 
 # Author: Richard Ryan Evans
 # Development Start Date: 09/25/2018
+#
+# Algorithm reconstructed from methods section in the publication:
+# Goodrich DE, Klingaman EA, Verchinina L, et al. Sex differences in weight loss
+# among veterans with serious mental illness: Observational study of a national 
+# weight management program. Women’s Health Issues [electronic article]. 
+# 2016;26(4):410–419. 
+# (https://linkinghub.elsevier.com/retrieve/pii/S1049386716300366). 
+# (Accessed December 6, 2019
 # 
 # Rationale: For grouped time series, (e.g., per person)
 #            Define time points and collect measurements, optionally applying
@@ -13,7 +21,7 @@
 #            Janney et al. 2016 served as a basis for this function/algorithm
 #
 # Requires MeasureWindows.R and MeasureRemoveOutliers.R to be in the same
-# directory as WindowCleaner.f (this file - Goodrich2016.R)
+# directory as Janney2016.f (this file - Goodrich2016.R)
 #-----------------------------------------------------------------------------#
 
 #----------------------- weight change moving forward --------------------------
@@ -61,7 +69,7 @@ lookForwardAndRemove.f <- function(DF,
   DT
 }
 
-#-------------------- Add weight change to WindowCleaner.f ---------------------
+#-------------------- Add weight change to Janney2016.f ---------------------
 
 #' @title Goodrich et al. 2016 Measurment Cleaning Algorithm
 #' @param DF object of class data.frame, containing id and weights
@@ -79,27 +87,33 @@ Goodrich2016.f <- function(DF,
                            measures,
                            tmeasures,
                            startPoint,
-                           t = c(0, 182.5, 365),
+                           t = c(0, 182, 365),
                            windows = c(30, 60, 60),
                            outliers = list(LB = c(80, 80, 80),
                                            UB = c(500, 500, 500)),
                            wtchng_thresh = 100,
                            excludeSubject = FALSE){
   
-  WindowsAndOutliers.df <- windowCleaner.f(DF,
-                                           id,
-                                           measures,
-                                           tmeasures,
-                                           startPoint,
-                                           t = t,
-                                           windows = windows,
-                                           outliers = outliers)
+  WindowsAndOutliers.df <- 
+    Janney2016.f(
+      DF,
+      id,
+      measures,
+      tmeasures,
+      startPoint,
+      t = t,
+      windows = windows,
+      outliers = outliers
+    )
   
-  lookForwardAndRemove.df <- lookForwardAndRemove.f(DF = WindowsAndOutliers.df,
-                                                    id = id,
-                                                    measures = "Weight_OR",
-                                                    tmeasures = tmeasures,
-                                                    wtchng_thresh = wtchng_thresh)
+  lookForwardAndRemove.df <- 
+    lookForwardAndRemove.f(
+      DF = WindowsAndOutliers.df,
+      id = id,
+      measures = "Weight_OR",
+      tmeasures = tmeasures,
+      wtchng_thresh = wtchng_thresh
+    )
   
   if (excludeSubject) {
     

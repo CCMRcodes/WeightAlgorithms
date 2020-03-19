@@ -4,6 +4,13 @@
 # 
 # Author: Richard Ryan Evans
 # Development Start Date: 04/23/2019
+#
+# Algorithm reconstructed from methods section in the publication:
+# Rosenberger PH, Ning Y, Brandt C, et al. BMI trajectory groups in veterans of 
+# the iraq and afghanistan wars. Preventive Medicine [electronic article]. 
+# 2011;53(3):149–154.
+# (https://linkinghub.elsevier.com/retrieve/pii/S0091743511002465). 
+# (Accessed December 6, 2019)
 # 
 # Rationale: For grouped time series, (e.g., per person), collect all
 #            measurements within a certain time frame, then break those down
@@ -30,6 +37,7 @@ Rosenberger2011.f <- function(DF,
   
   if (!require(dplyr))      install.packages("dplyr")
   if (!require(data.table)) install.packages("data.table")
+  if (!require(rlang))      install.packages("rlang")
   
   tryCatch(
     if (class(DF[[tmeasures]])[1] != class(DF[[startPoint]])[1]) {
@@ -87,13 +95,13 @@ Rosenberger2011.f <- function(DF,
     texclude <- floor(length(t) / 2) + 1
   }
   
-  # return result
-  id_enq <- rlang::sym(id)
-  tmeasures_enq <- rlang::sym(tmeasures)
+  id <- rlang::sym(id)
+  tmeasures <- rlang::sym(tmeasures)
   
+  # return result
   do.call(rbind, DT) %>%
-    group_by(!!id_enq) %>%
-    arrange(!!tmeasures_enq) %>%
+    arrange(!!id, !!tmeasures) %>%
+    group_by(!!id) %>%
     filter(max(row_number()) >= texclude) %>% # must have at least texclude
     ungroup()
 }

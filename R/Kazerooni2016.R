@@ -4,6 +4,12 @@
 # 
 # Author: Richard Ryan Evans
 # Development Start Date: 04/22/2019
+#
+# Algorithm reconstructed from methods section in the publication:
+# Kazerooni R, Lim J. Topiramate-associated weight loss in a veteran population. 
+# Military Medicine [electronic article]. 2016;181(3):283–286. 
+# (https://academic.oup.com/milmed/article/181/3/283-286/4159223). 
+# (Accessed December 6, 2019)
 # 
 # Rationale: For grouped time series, (e.g., per person), collect k time points
 #            of interest within specified windows, if any of the k time points
@@ -28,6 +34,7 @@ Kazerooni2016.f <- function(DF,
                                            UB = c(0, 90, 185))) {
   
   if (!require(dplyr)) install.packages("dplyr")
+  if (!require(rlang)) install.packages("rlang")
   
   tryCatch(
     if (class(DF[[tmeasures]])[1] != class(DF[[startPoint]])[1]) {
@@ -61,26 +68,34 @@ Kazerooni2016.f <- function(DF,
   )
   
   # compute difference in time between t0 and all t_j
-  mutate_call <- lazyeval::interp(~as.numeric(difftime(a, b, units = "days")), 
-                                  a = as.name(tmeasures),
-                                  b = as.name(startPoint))
+  id         <- rlang::sym(id)
+  tmeasures  <- rlang::sym(tmeasures)
+  startPoint <- rlang::sym(startPoint) 
   
-  DF <- DF %>% mutate_(.dots = setNames(list(mutate_call), "time"))
+  DF <- DF %>%
+    mutate(
+      time = as.numeric(
+        difftime(
+          !!tmeasures, !!startPoint,
+          tz = "utc", units = "days"
+        )
+      )
+    )
   
   # loop through each time point in `t`, place into list
   meas_tn <- vector("list", length(t)) # set empty list
   for (i in 1:length(t)) {
     meas_tn[[i]] <- DF %>%
       filter(time >= t[i] - windows$LB[i] & time <= t[i] + windows$UB[i]) %>%
-      group_by(!!!syms(id)) %>%
+      group_by(!!id) %>%
       arrange(abs(time - t[i])) %>%
       slice(1)
   }
   
   # count number of time points available for each subject i
   do.call(rbind, meas_tn) %>%
-    arrange(!!!syms(c(id, tmeasures))) %>%
-    group_by(!!!syms(id)) %>%
+    arrange(!!id, !!tmeasures) %>%
+    group_by(!!id) %>%
     filter(max(row_number()) >= 3) %>% # must have all 3 time points
     ungroup()
 }

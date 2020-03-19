@@ -4,6 +4,13 @@
 # 
 # Author: Richard Ryan Evans
 # Development Start Date: 11/07/2018
+#
+# Algorithm reconstructed from methods section in the publication:
+# Maguen S, Madden E, Cohen B, et al. The relationship between body mass index 
+# and mental health among iraq and afghanistan veterans. Journal of General 
+# Internal Medicine [electronic article]. 2013;28(S2):563–570. 
+# (http://link.springer.com/10.1007/s11606-013-2374-8). 
+# (Accessed December 6, 2019)
 # 
 # Rationale: For grouped time series, (e.g., per person)
 #            remove outliers, then model patients weight trajectories with
@@ -32,7 +39,6 @@ Maguen2013.f <- function(DF,
   
   if (!require(dplyr))  install.packages("dplyr")
   if (!require(lme4))   install.packages("lme4")
-  if (!require(modelr)) install.packages("modelr")
   
   tryCatch(
     if (!is.numeric(DF[[measures]])) {
@@ -62,31 +68,42 @@ Maguen2013.f <- function(DF,
   # step 2: linear mixed model
   
   # add time for random slope term
+  id <- rlang::sym(id)
+  tmeasures <- rlang::sym(tmeasures)
+  
   DF <- DF %>%
     filter(!is.na(Output)) %>%
-    group_by_(id) %>%
-    arrange_(id, tmeasures) %>%
+    group_by(!!id) %>%
+    arrange(!!id, !!tmeasures) %>%
     mutate(t = row_number()) %>%
     ungroup()
   
-  f <- paste("Output",
-             paste(variables,
-                   collapse = " + "),
-             sep = " ~ ")
+  f <- paste(
+    "Output",
+    paste(
+      variables,
+      collapse = " + "
+    ),
+    sep = " ~ "
+  )
   f <- paste0(f, " + t", " + (1 + t", " | ", id, ")")
   f <- as.formula(f)
-  lmm <- eval(bquote(lme4::lmer(.(f),
-                                data = DF,
-                                control = lmerControl(calc.derivs = FALSE)
-                                )
-                     )
-              )
+  lmm <- eval(
+    bquote(
+      lme4::lmer(
+        .(f),
+        data = DF,
+        control = lme4::lmerControl(calc.derivs = FALSE)
+      )
+    )
+  )
   
   DF$resid <- residuals(lmm) # add conditional residuals at ith level
   
   DF <- DF %>%
-    mutate(Output = ifelse(abs(resid) >= ResidThreshold,
-                           NA_real_,
-                           Output))
+    mutate(
+      Output = ifelse(abs(resid) >= ResidThreshold, NA_real_, Output)
+    )
+  
   DF
 }

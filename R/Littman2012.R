@@ -4,10 +4,17 @@
 # 
 # Author: Richard Ryan Evans
 # Development Start Date: 09/25/2018
+#
+# Algorithm reconstructed from methods section in the publication:
+# Littman AJ, Damschroder LJ, Verchinina L, et al. National evaluation of
+# obesity screening and treatment among veterans with and without mental health
+# disorders. General Hospital Psychiatry[electronic article]. 2015;37(1):7-13.
+# (https;//linkinghub.elsevier.com/retrieve/pii/S0163834314002898). (Accessed
+# December 6, 2019)
 # 
 # Rationale: For grouped time series, (e.g., per person)
 #            clean numeric measurements collected longitudinally
-#  	     first, removing outliers, then examining within-person
+#  	         first, removing outliers, then examining within-person
 #            measurement mean and standard deviation, if measurement
 #            is found to be above SDthreshold, then measurement is
 #            set to missing. Based on work by Littman et al. 2012.
@@ -16,9 +23,9 @@
 
 #' @title Littman 2012 Measurment Cleaning Algorithm
 #' @param DF object of class data.frame, containing `id` and `measures`
-#' @param id string corresponding to the name of the column of patient identifiers in `DF`
-#' @param measures string corresponding to the name of the column of measurements in `DF`
-#' @param tmeasures string corresponding to the name of the column of measurement collection dates or times in `DF`. If `tmeasures` is a date object, there may be more than one weight on the same day, if it precise datetime object, there may not be more than one weight on the same day
+#' @param id string corresponding to the name of the column of patient identifiers in `df`
+#' @param measures string corresponding to the name of the column of measurements in `df`
+#' @param tmeasures string corresponding to the name of the column of measurement collection dates or times in `df`. If `tmeasures` is a date object, there may be more than one weight on the same day, if it precise datetime object, there may not be more than one weight on the same day
 #' @param outliers object of type `list` with numeric inputs corresponding to the upper and lower bound for each time entry. Default is `list(LB = c(75), UB = c(600))`
 #' @param SDthreshold numeric scalar to be multiplied by the `meanMeasures` per `id`. E.g., from Littman 2012, "...We excluded any weight measurements that met the following 2 criteria: 1) the difference between the mean weight and weight in question was greater than the SD and 2) the SD was greater than 10% of the mean...." implies `SDthreshold`= 0.10
 #' @return input data.frame with additional columns: `InputMeasurement`, the original weight data; `OutputMeasurement`, algorithm output; `meanWeight`, mean(weights) per `id`; `SDWeight`, SD(weights) per `id`; `SD_threshold_`, Mean(weights) * `SDthreshold`

@@ -4,6 +4,14 @@
 # 
 # Author: Richard Ryan Evans
 # Development Start Date: 11/07/2018
+#
+# Algorithm reconstructed from methods section in the publication:
+# Jackson SL, Long Q, Rhee MK, et al. Weight loss and incidence of diabetes with 
+# the Veterans Health Administration MOVE! Lifestyle change programme: An 
+# observational study. The Lancet Diabetes & Endocrinology [electronic article]. 
+# 2015;3(3):173–180. 
+# (https://linkinghub.elsevier.com/retrieve/pii/S2213858714702670). 
+# (Accessed December 9, 2019)
 # 
 # Rationale: For grouped time series, (e.g., per person)
 #            remove outliers, then apply windows to each weight measurement

@@ -4,6 +4,14 @@
 # 
 # Author: Richard Ryan Evans
 # Development Start Date: 04/22/2019
+#
+# Algorithm reconstructed from methods section in the publication:
+# Buta E, Masheb R, Gueorguieva R, et al. Posttraumatic stress disorder 
+# diagnosis and gender are associated with accelerated weight gain trajectories 
+# in veterans during the post-deployment period. Eating Behaviors 
+# [electronic article]. 2018;29:8–13. 
+# (https://linkinghub.elsevier.com/retrieve/pii/S1471015317300521). 
+# (Accessed December 6, 2019)
 # 
 # Rationale: This algorithm is dependent on BMI, For grouped time series, 
 #            (e.g., per person), if person has <= 1 BMI measure, then exclude 
