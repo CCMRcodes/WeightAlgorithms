@@ -2,45 +2,50 @@
 US Dept. of Veteran's Affairs - Corporate Data Warehouse
 Weight Measurment Cleaning Algorithm
 Published in Maciejewski 2016 - see appendix
+Authors: (Primary) Theodore Berkowitz (Theodore.Berkowitz@va.gov)
+	 (Secondary) Richard Evans (Richard.Evans8@va.gov)
 
 Rationale: "... If the standard deviation of the same-day weights was less 
-			than or equal to 2 lb, then the mean was taken. Otherwise, the 
-			standard deviation of each same-day weight with prior/post weight 
-			measurements was calculated and the same-day weight leading to the 
+		than or equal to 2 lb, then the mean was taken. Otherwise, the 
+		standard deviation of each same-day weight with prior/post weight 
+		measurements was calculated and the same-day weight leading to the 
 Phase 1		smallest standard deviation was retained. 
 ------------------------------------------------------------------------------
 Phase 2		After sorting weight measures by date for each individual, 
-			rolling standard deviations were calculated using consecutive 
-			groups of three weight measures for each individual. The first group 
-			consisted of weight measures 1-3, the second 2-4, and so forth. 
-			The first and last groups were evaluated separately because the 
-			first (and last) weight measure could only be included in one group 
-			and the second (and next to last) could only be included in two groups. 
-			If the first (or last) two groups’ standard deviations were greater 
-			than 35 lb, the second (or next to last) weight measure was deleted. 
-			If the first (or last) standard deviation was greater than 35 lb, 
-			then paired standard deviations were calculated for each pair within 
-			the first (or last) group. If two of the paired standard deviations 
-			were greater than 45 lb and the remaining was less than 10 lb, 
-			the offending weight measure was deleted. After these deletions, 
-			the weight measures were reassembled in date order for each individual 
-			and rolling standard deviations were recalculated and assigned to the 
-			central weight measure of the group. Clusters of high standard deviations, 
-			indicating a potential outlier, were identified by flagging consecutive 
-			standard deviations greater than 10 lb. For each cluster of high 
-			standard deviations of three or more the interior weight measures were 
-			deleted keeping only the first and last measures of the cluster. 
-			Approximately 1.2% of weight measurements were identified as outliers 
-			and were deleted. Standard deviation cutoffs were determined via iterative 
-			trial and error driven by clinical plausibility of the specific measure 
-			rather than a standard rule and with guidance from clinical practitioners 
-			familiar with context of surgery and expected outcomes. 
-			Before the same-day and outlier cleaning, the cohort ... had 89,757 
-			measurements; after these cleaning steps, 85,556 (95.3%) weight measurements 
-			remained."
+		rolling standard deviations were calculated using consecutive 
+		groups of three weight measures for each individual. The first group 
+		consisted of weight measures 1-3, the second 2-4, and so forth. 
+		The first and last groups were evaluated separately because the 
+		first (and last) weight measure could only be included in one group 
+		and the second (and next to last) could only be included in two groups. 
+		If the first (or last) two groupsâ€™ standard deviations were greater 
+		than 35 lb, the second (or next to last) weight measure was deleted. 
+		If the first (or last) standard deviation was greater than 35 lb, 
+		then paired standard deviations were calculated for each pair within 
+		the first (or last) group. If two of the paired standard deviations 
+		were greater than 45 lb and the remaining was less than 10 lb, 
+		the offending weight measure was deleted. After these deletions, 
+		the weight measures were reassembled in date order for each individual 
+		and rolling standard deviations were recalculated and assigned to the 
+		central weight measure of the group. Clusters of high standard deviations, 
+		indicating a potential outlier, were identified by flagging consecutive 
+		standard deviations greater than 10 lb. For each cluster of high 
+		standard deviations of three or more the interior weight measures were 
+		deleted keeping only the first and last measures of the cluster. 
+		Approximately 1.2% of weight measurements were identified as outliers 
+		and were deleted. Standard deviation cutoffs were determined via iterative 
+		trial and error driven by clinical plausibility of the specific measure 
+		rather than a standard rule and with guidance from clinical practitioners 
+		familiar with context of surgery and expected outcomes. 
+		Before the same-day and outlier cleaning, the cohort ... had 89,757 
+		measurements; after these cleaning steps, 85,556 (95.3%) weight measurements 
+		remained."
 
-Version: RRE - Added Pre-Processing Algorithm, formatted Maren Olsen's Code
+Version: RRE - Added Pre-Processing Algorithm, formatted from TB's code as
+         sent by Maren Olsen.
 Development Start Date: 09/25/2018
+Author Contributions: TB programmed macros %dolag() and %prepost()
+                      RE programmed macro %SameDayMeasures()
 *****************************************************************************/
 
 /********************** pre-processing ***************************************
@@ -61,11 +66,9 @@ two steps before applying the below algorithm:
 * `&IDVar.` is the name of the variable that uniquely identifies each
   patient in the data set (e.g., ScrSSN, PatientICN, PERSON_ID, StudyID).
      
-* `&DateVar.` is the name of the variable that contains the date on which
-  the value of &ANALYSISVAR. was recorded, i.e., the date of the weight
-  measurement record. NB: All of the following code was used with data
-  sets where there was only ever one weight measurement record per
-  calendar date per patient.
+* `&DateVar.` is the name of the variable that contains the date, time, or
+  datetime onwhich the value of &AnalysisVar. was recorded, i.e., the date,
+  time, or datetime of the weight measurement record.
      
 * `&AnalysisVar.` is the name of the numeric variable in &DSN. that these
   macros are supposed to "clean". In this case, it should be the name of
@@ -78,10 +81,10 @@ two steps before applying the below algorithm:
 *****************************************************************************/
 
 %MACRO SameDayMeasures(DSN = , 
-					   IDVar = , 
-					   DateVar = , 
-					   AnalysisVar = , 
-					   clearSpace = "TRUE");
+		       IDVar = , 
+		       DateVar = , 
+		       AnalysisVar = , 
+		       clearSpace = "TRUE");
 	/* Remove outliers and missing values first */
 	DATA df_step1;
 		SET &DSN;
@@ -103,11 +106,11 @@ two steps before applying the below algorithm:
 			       b.Cnt
 				FROM df_step2 AS a
 					LEFT JOIN (
-						  	   SELECT &IDVar, &DateVar, COUNT(*) AS Cnt
-									FROM df_step2
-									GROUP BY &IDVar, &DateVar
-									HAVING COUNT(*) > 1
-						       ) AS b
+						   SELECT &IDVar, &DateVar, COUNT(*) AS Cnt
+						     FROM df_step2
+						     GROUP BY &IDVar, &DateVar
+						     HAVING COUNT(*) > 1
+						   ) AS b
 						ON a.&IDVar = b.&IDVar
 					   	   AND
 					   	   a.&DateVar = b.&DateVar
@@ -128,14 +131,14 @@ two steps before applying the below algorithm:
 		CLASS &IDVar &DateVar;
 		VAR &AnalysisVar;
 		OUTPUT OUT = AnalysisVarStats (DROP = _TYPE_ _FREQ_)
-			   MEAN = Mean_AnalysisVar 
-			   STD = SD_AnalysisVar;
+		       MEAN = Mean_AnalysisVar 
+		       STD = SD_AnalysisVar;
 	RUN;
 
 	* AnalysisVar2SD: of the same-day measures, those with SD < 2, we keep the mean;
 	* AnalysisVarFlagged: of the same-day measures, those with SD > 2, must be processed further;
 	DATA AnalysisVar2SD (DROP = SD_AnalysisVar)
-		 AnalysisVarFlagged;
+	     AnalysisVarFlagged;
 		SET AnalysisVarStats;
 			IF SD_AnalysisVar <= 2 THEN OUTPUT AnalysisVar2SD;
 			ELSE OUTPUT AnalysisVarFlagged;
@@ -169,9 +172,9 @@ two steps before applying the below algorithm:
 			SELECT a.*
 				FROM MeanFixed AS a
 					RIGHT JOIN (
-								SELECT DISTINCT &IDVar
-								FROM AnalysisVarFlagged
-								) AS b
+						    SELECT DISTINCT &IDVar
+						    FROM AnalysisVarFlagged
+						    ) AS b
 						ON a.&IDVar = b.&IDVar;
 	QUIT;
 
@@ -184,8 +187,8 @@ two steps before applying the below algorithm:
 					Cnt + 1;
 
 	PROC TRANSPOSE DATA = AnalysisVarFlagged2
-			  	   OUT = AnalysisVarWide (KEEP = &IDVar &DateVar &AnalysisVar:)
-				   PREFIX = &AnalysisVar;
+		       OUT = AnalysisVarWide (KEEP = &IDVar &DateVar &AnalysisVar:)
+		       PREFIX = &AnalysisVar;
 		BY &IDVar &DateVar;
 		ID Cnt;
 		VAR &AnalysisVar;
@@ -194,7 +197,7 @@ two steps before applying the below algorithm:
 	PROC SQL noprint;
 		CREATE TABLE AnalysisVarFlagged3 AS
 			SELECT a.*,
-				   (a.&DateVar - b.&DateVar) AS Diff
+			       (a.&DateVar - b.&DateVar) AS Diff
 				FROM AnalysisVarWide AS a
 					LEFT JOIN AnalysisVarFlagged AS b
 						ON a.&IDVar = b.&IDVar 
@@ -202,34 +205,34 @@ two steps before applying the below algorithm:
 
 		SELECT name
 			INTO :list SEPARATED BY ' '
-			FROM dictionary.columns
-			WHERE LIBNAME = 'WORK' AND MEMNAME = 'ANALYSISVARFLAGGED3';
+				FROM dictionary.columns
+				WHERE LIBNAME = 'WORK' AND MEMNAME = 'ANALYSISVARFLAGGED3';
 
 		CREATE TABLE backward AS
 			SELECT &IDVar,
-				   %SCAN(&list, 3, ' ') AS Before,
-				   Diff
-				FROM AnalysisVarFlagged3
-				WHERE Diff < 0
-				ORDER BY &IDVar, Diff DESC;
+			       %SCAN(&list, 3, ' ') AS Before,
+			       Diff
+			FROM AnalysisVarFlagged3
+			WHERE Diff < 0
+			ORDER BY &IDVar, Diff DESC;
 
 		CREATE TABLE forward AS
 			SELECT &IDVar,
-				   %SCAN(&list, 3, ' ') AS After,
-				   Diff
-				FROM AnalysisVarFlagged3
-				WHERE Diff > 0
-				ORDER BY &IDVar, Diff;
+			       %SCAN(&list, 3, ' ') AS After,
+			       Diff
+			FROM AnalysisVarFlagged3
+			WHERE Diff > 0
+			ORDER BY &IDVar, Diff;
 
 		CREATE TABLE MultipleAnalysisVars AS
 			SELECT &IDVar,
-				   &DateVar,
-				   %SCAN(&list, 3, ' '),
-				   %SCAN(&list, 4, ' '),
-				   %SCAN(&list, 5, ' '),
-				   %SCAN(&list, 6, ' ')
-				FROM AnalysisVarFlagged3
-				where Diff = 0;
+			       &DateVar,
+			       %SCAN(&list, 3, ' '),
+			       %SCAN(&list, 4, ' '),
+			       %SCAN(&list, 5, ' '),
+			       %SCAN(&list, 6, ' ')
+			FROM AnalysisVarFlagged3
+			WHERE Diff = 0;
 	QUIT;
 
 	DATA backward;
@@ -247,38 +250,38 @@ two steps before applying the below algorithm:
 	PROC SQL;
 		CREATE TABLE SameDayAnalysisVars AS
 			SELECT a.*,
-				   b.before,
-				   c.after
-				FROM MultipleAnalysisVars AS a
-					LEFT JOIN backward AS b
-						ON a.&IDVar = b.&IDVar
-					LEFT JOIN forward AS c
-						ON a.&IDVar = c.&IDVar;
+			       b.before,
+			       c.after
+			FROM MultipleAnalysisVars AS a
+				LEFT JOIN backward AS b
+					ON a.&IDVar = b.&IDVar
+				LEFT JOIN forward AS c
+					ON a.&IDVar = c.&IDVar;
 	QUIT;
 
 	* find min(SD) of AnalysisVar{i} vs. Before and After measures;
 	DATA AnalysisVar1 (KEEP = &IDVar &DateVar %SCAN(&list, 3, ' '))
-		 AnalysisVar2 (KEEP = &IDVar &DateVar %SCAN(&list, 4, ' '))
-		 AnalysisVar3 (KEEP = &IDVar &DateVar %SCAN(&list, 5, ' '))
-		 AnalysisVar4 (KEEP = &IDVar &DateVar %SCAN(&list, 6, ' '))
-		 dump;
+	     AnalysisVar2 (KEEP = &IDVar &DateVar %SCAN(&list, 4, ' '))
+	     AnalysisVar3 (KEEP = &IDVar &DateVar %SCAN(&list, 5, ' '))
+	     AnalysisVar4 (KEEP = &IDVar &DateVar %SCAN(&list, 6, ' '))
+ 	     dump;
 		SET SameDayAnalysisVars;
-			SD1 = STD(of %SCAN(&list, 3, ' '), Before, After);
-			SD2 = STD(of %SCAN(&list, 4, ' '), Before, After);
-			IF %SCAN(&list, 5, ' ') ne . THEN
-				DO;
-					SD3 = STD(of %SCAN(&list, 5, ' '), Before, After);
-				END;
-			IF %SCAN(&list, 6, ' ') ne . THEN
-				DO;
-					SD4 = STD(of %SCAN(&list, 6, ' '), Before, After);
-				END;
-			MinAnalysisVar = MIN(of SD1-SD4);
-		IF SD1      = MinAnalysisVar THEN OUTPUT AnalysisVar1;
-		ELSE IF SD2	= MinAnalysisVar THEN OUTPUT AnalysisVar2;
-		ELSE IF SD3 = MinAnalysisVar THEN OUTPUT AnalysisVar3;
-		ELSE IF SD4 = MinAnalysisVar THEN OUTPUT AnalysisVar4;
-		ELSE OUTPUT dump;
+		    SD1 = STD(of %SCAN(&list, 3, ' '), Before, After);
+		    SD2 = STD(of %SCAN(&list, 4, ' '), Before, After);
+		    IF %SCAN(&list, 5, ' ') ne . THEN
+			DO;
+				SD3 = STD(of %SCAN(&list, 5, ' '), Before, After);
+			END;
+	            IF %SCAN(&list, 6, ' ') ne . THEN
+			DO;
+				SD4 = STD(of %SCAN(&list, 6, ' '), Before, After);
+			END;
+		    MinAnalysisVar = MIN(of SD1-SD4);
+		    IF SD1      = MinAnalysisVar THEN OUTPUT AnalysisVar1;
+		    ELSE IF SD2	= MinAnalysisVar THEN OUTPUT AnalysisVar2;
+		    ELSE IF SD3 = MinAnalysisVar THEN OUTPUT AnalysisVar3;
+		    ELSE IF SD4 = MinAnalysisVar THEN OUTPUT AnalysisVar4;
+		    ELSE OUTPUT dump;
 	RUN;
 
 	* join back to phase 1 AnalysisVar;
@@ -287,10 +290,10 @@ two steps before applying the below algorithm:
 			SELECT DISTINCT a.&IDVar,
 				   a.&Datevar,
 				   CASE WHEN b.%SCAN(&list, 3, ' ') NE . THEN b.%SCAN(&list, 3, ' ')
-				   	    WHEN c.%SCAN(&list, 4, ' ') NE . THEN c.%SCAN(&list, 4, ' ')
-						WHEN d.%SCAN(&list, 5, ' ') NE . THEN d.%SCAN(&list, 5, ' ')
-						WHEN e.%SCAN(&list, 6, ' ') NE . THEN e.%SCAN(&list, 6, ' ')
-						ELSE a.&AnalysisVar
+				   	WHEN c.%SCAN(&list, 4, ' ') NE . THEN c.%SCAN(&list, 4, ' ')
+					WHEN d.%SCAN(&list, 5, ' ') NE . THEN d.%SCAN(&list, 5, ' ')
+					WHEN e.%SCAN(&list, 6, ' ') NE . THEN e.%SCAN(&list, 6, ' ')
+					ELSE a.&AnalysisVar
 					END AS AnalysisVarFixed
 				FROM MeanFixed AS a
 					LEFT JOIN AnalysisVar1 AS b
@@ -317,31 +320,31 @@ two steps before applying the below algorithm:
 
 	PROC SQL noprint;
 		SELECT CASE WHEN &clearSpace = 'TRUE'
-						THEN 'PROC DELETE 
-								DATA = MeanFixed
-									   df_step1
-									   df_step2
-									   df_step3
-									   AnalysisVar2SD
-									   AnalysisVarFlagged
-									   AnalysisVarFlagged2
-									   AnalysisVarFlagged3
-									   AnalysisVarStats
-									   AnalysisVarWide
-									   SameDayAnalysisVar
-									   Backward
-									   Forward
-								   	   MultipleAnalysisVars
-									   SameDayAnalysisVars
-									   AnalysisVar1
-									   AnalysisVar2
-									   AnalysisVar3
-									   AnalysisVar4
-									   Dump; 
-							  RUN;'
-					ELSE ' ' END
-			INTO :deleteStatement
-			FROM sets;
+			THEN 'PROC DELETE 
+			      	 DATA = MeanFixed
+					df_step1
+					df_step2
+	         			df_step3
+					AnalysisVar2SD
+					AnalysisVarFlagged
+					AnalysisVarFlagged2
+					AnalysisVarFlagged3
+					AnalysisVarStats
+					AnalysisVarWide
+					SameDayAnalysisVar
+					Backward
+				        Forward
+					MultipleAnalysisVars
+					SameDayAnalysisVars
+					AnalysisVar1
+					AnalysisVar2
+					AnalysisVar3
+					AnalysisVar4
+					Dump; 
+				RUN;'
+			ELSE ' ' END
+		INTO :deleteStatement
+		FROM sets;
 	QUIT;
 
 	&deleteStatement;
@@ -354,11 +357,9 @@ two steps before applying the below algorithm:
 * `&IDVAR.` is the name of the variable that uniquely identifies each
   patient in the data set (e.g., ScrSSN, PatientICN, PERSON_ID, StudyID).
      
-* `&DATEVAR.` is the name of the variable that contains the date on which
-  the value of &ANALYSISVAR. was recorded, i.e., the date of the weight
-  measurement record. NB: All of the following code was used with data
-  sets where there was only ever one weight measurement record per
-  calendar date per patient.
+* `&DateVar.` is the name of the variable that contains the date, time, or
+  datetime onwhich the value of &AnalysisVar. was recorded, i.e., the date,
+  time, or datetime of the weight measurement record.
      
 * `&ANALYSISVAR.` is the name of the numeric variable in &DSN. that these
   macros are supposed to "clean". In this case, it should be the name of
@@ -447,11 +448,9 @@ two steps before applying the below algorithm:
 * `&IDVAR.` is the name of the variable that uniquely identifies each
   patient in the data set (e.g., ScrSSN, PatientICN, PERSON_ID, StudyID).
      
-* `&DATEVAR.` is the name of the variable that contains the date on which
-  the value of &ANALYSISVAR. was recorded, i.e., the date of the weight
-  measurement record. NB: All of the following code was used with data
-  sets where there was only ever one weight measurement record per
-  calendar date per patient.
+* `&DateVar.` is the name of the variable that contains the date, time, or
+  datetime onwhich the value of &AnalysisVar. was recorded, i.e., the date,
+  time, or datetime of the weight measurement record.
      
 * `&ANALYSISVAR.` is the name of the numeric variable in &DSN. that these
   macros are supposed to "clean". In this case, it should be the name of
