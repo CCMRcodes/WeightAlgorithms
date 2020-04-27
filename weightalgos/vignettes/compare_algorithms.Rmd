@@ -1,0 +1,463 @@
+---
+title: "Algorithm Comparisons"
+author: "Rich Evans (Richard.Evans8@va.gov)"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{ggthemes}
+  %\VignetteDepends{ggpubr}
+  %\VignetteDepends{tidyverse}
+bibliography: bib/REFERENCES.bib
+csl: csl/american-journal-of-epidemiology.csl
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+# Introduction
+
+There has been a rapid increase in the use of EHR data, and that has lead to vast amounts of clinical information open for use. However, EHR data has it's issues when it comes to research & evaluation, first, there is a **lack of control** over data definitions and data collection processes and further, there are **methodological challenges** associated with processing and transforming raw, EHR data. These issues have led to calls from the scientific community for **increased transparency** regarding data cleaning efforts, methods to asses EHR data quality, and increased reporting and sharing of methods.
+
+In this project, we focus on patient weight for it's clinical importance and frequent measurement, resulting in many entries per patient, over time. As an additional challenge, in the EHR, weight can vary substantially within patient, subject to differing units and data entry errors.
+
+As there is no "standard" for processing measurements of this type from EHRs, researchers are left to develop their own algorithms to define weights, resulting in vastly different definitions in the published literature. These algorithms can range from simple cut-offs of implausible values, to more computationally complex algorithms requiring significant coding and processing capacity, leading to losses in efficiency and issues difficulties replicating findings.
+
+In summary, it is unknown how resulting weight measures may vary, based on how researchers process and clean the data through their choice of algorithm, or lack thereof.
+
+Thus, this package is designed to allow users to compare algorithms for processing clinical weight measurements from EHR data. This first vignette is designed to orient the user to a typical workflow and introduce some of the idiosyncracies of the algorithms. We now introduce the algorithms included in this package.
+
+# Algorithms
+
+Following our recent literature review, *Construction and use of body weight measures from administrative data in a large national health system: A system review* (**In Press**), in which 492 published documents were examined and 39 subsequently analyzed, we provide a more in-depth analysis of 33[@adams_tobacco_2012; @arterburn_predictors_2013; @baker_predictors_2015; @batch_outcome_2018; @bounthavong_retrospective_2014; @braun_evaluation_2016; @breland_obesity_2017; @buta_posttraumatic_2018; @chan_examining_2017; @copeland_use_2012; @garvin_weight_2015; @garvin_characteristics_2015; @garvin_initial_2016; @goodrich_sex_2016; @grabarczyk_observational_2018; @hoerster_weight_2014; @huizinga_glycemic_2010; @ikossi_post-traumatic_2010; @jackson_weight_2015; @janney_influence_2016; @kahwati_best_2011; @kazerooni_topiramate-associated_2016; @littman_evaluation_2012; @littman_national_2015; @maciejewski_bariatric_2016; @maguen_relationship_2013; @noel_intensity_2012; @pandey_military_2018; @romanova_effectiveness_2013; @rosenberger_bmi_2011; @rutledge_five-year_2012; @shi_impact_2011; @xiao_weight_2017] weight cleaning algorithms (7[@adams_tobacco_2012; @bounthavong_retrospective_2014; @copeland_use_2012; @ikossi_post-traumatic_2010; @pandey_military_2018; @rutledge_five-year_2012; @shi_impact_2011] of 39 did not have an appropriate algorithm for inclusion). We have then chosen 12 algorithms representing the diversity of methods from the literature, while eliminating redundancies:
+
+* Janney 2016 [@janney_influence_2016]
+* Littman 2012 [@littman_national_2015]
+* Maciejewski 2016 [@maciejewski_bariatric_2016]
+* Breland 2017 [@breland_obesity_2017]
+* Maguen 2013 [@maguen_relationship_2013]
+* Goodrich 2016 [@goodrich_sex_2016]
+* Chan 2017 [@chan_examining_2017]
+* Jackson 2015 [@jackson_weight_2015]
+* Buta 2018 [@buta_posttraumatic_2018]
+* Kazerooni 2016 [@kazerooni_topiramate-associated_2016]
+* Noel 2012 [@noel_intensity_2012]
+* Rosenberger 2011 [@rosenberger_bmi_2011]
+
+Weight samples come from the US Dept. of Veteran's Affairs Corporate Data Warehouse and the algorithms to deal with these data are specific to the source. However, some could be used regardless of the source as long as the data structure is similar^[To be honest, most of these algorithms could be used for "cleaning" any continuous set data].
+
+<font size="4">NOTE:</font> algorithms here written in R rely on functions from these libraries c("dplyr", "magrittr", "data.table", "rlang")
+
+# Example Usage
+
+We will run each algorithm on our sample of weights taken from the VA CDW, included in the package as `cdw1000`. For educational purposes I will generate outlier weights based on a uniform distribution, for, let's say, 5% of the values.
+
+```{r}
+library(tidyverse)
+library(data.table)
+library(weightalgos)
+
+data(cdw1000)
+
+samp <- cdw1000 %>%
+  sample_n(n() * 0.05) %>%
+  mutate(Weight = runif(n(), 0, 1000)) %>%
+  select(id:Weight) %>%
+  right_join(cdw1000, by = c("id", "WeightDate")) %>%
+  mutate(Weight_star = coalesce(Weight.x, Weight.y)) %>%
+  select(-Weight.x) %>%
+  rename(
+    Weight_aug  = Weight_star,
+    Weight_orig = Weight.y
+  )
+```
+
+You may end up with duplicates based on the random sample, it won't appreciably change the result in the end, however, so I'm not setting a seed.
+
+Just to compare,
+
+```{r, echo = FALSE, eval = TRUE, fig.height = 6, fig.width = 8}
+samp %>%
+  select(id, Weight_orig, Weight_aug) %>%
+  pivot_longer(
+    cols = starts_with("Weight"), 
+    names_to = "weight_version"
+  ) %>%
+  ggplot(aes(x = value, fill = factor(weight_version))) +
+  facet_wrap(vars(weight_version), nrow = 2) +
+  geom_density() +
+  geom_rug() +
+  theme_void() +
+  scale_fill_manual(values = c("#631647", "#FF8B0D"))
+```
+
+The following can be done with the `all_algos()` function, but for illustration purposes each one will be demonstrated. Additionally, some issues with combining and coercing the output from multiple algorithms can be explained in greater detail.
+
+All functions are named after their authors, details of each can be investigated in more detail by visiting the help help pages, e.g., `?janney` or `help(janney)`
+
+```{r}
+#--------------------------------- Janney 2016 -------------------------------#
+
+janney_df <- janney(df = samp,
+                    id = "id",
+                    measures = "Weight_aug",
+                    tmeasures = "WeightDate",
+                    startPoint = "VisitDate")
+
+#-------------------------------- Littman 2012 -------------------------------#
+
+littman_df <- littman(df = samp,
+                      id = "id",
+                      measures = "Weight_aug",
+                      tmeasures = "WeightDate")
+
+#-------------------------------- Breland 2017 -------------------------------#
+
+breland_df <- breland(df = samp,
+                      id = "id",
+                      measures = "Weight_aug",
+                      tmeasures = "WeightDate")
+
+#-------------------------------- Maguen 2013 --------------------------------#
+
+maguen_df <- maguen(df = samp,
+                    id = "id",
+                    measures = "Weight_aug",
+                    tmeasures = "WeightDate",
+                    variables = c("Age", "Sex"))
+
+#------------------------------- Goodrich 2016 -------------------------------#
+
+goodrich_df <- goodrich(df = samp,
+                        id = "id",
+                        measures = "Weight_aug",
+                        tmeasures = "WeightDate",
+                        startPoint = "VisitDate")
+
+#----------------------------- Chan & Raffa 2017 -----------------------------#
+
+chan_df <- chan(df = samp,
+                id = "id",
+                measures = "Weight_aug",
+                tmeasures = "WeightDate")
+
+#------------------------------- Jackson 2015 --------------------------------#
+
+jackson_df <- jackson(df = samp,
+                      id = "id",
+                      measures = "Weight_aug",
+                      tmeasures = "WeightDate",
+                      startPoint = "VisitDate")
+
+#--------------------------------- Buta 2018 ---------------------------------#
+
+# Attach and compute BMI
+samp <- samp %>% mutate(BMI = 703 * Weight_aug / (Height ^ 2))
+
+buta_df <- buta(df = samp,
+                id = "id",
+                measures = "BMI",
+                tmeasures = "WeightDate")
+
+#------------------------------ Kazerooni 2016 -------------------------------#
+
+kazerooni_df <- kazerooni(df = samp,
+                          id = "id",
+                          measures = "Weight_aug",
+                          tmeasures = "WeightDate",
+                          startPoint = "VisitDate")
+
+#-------------------------------- Noel 2012 ----------------------------------#
+
+noel_df <- noel(df = samp,
+                id = "id",
+                measures = "Weight_aug",
+                tmeasures = "WeightDate")
+
+#----------------------------- Rosenberger 2011 ------------------------------#
+
+rosenberger_df <- rosenberger(df = samp,
+                              id = "id", 
+                              tmeasures = "WeightDate",
+                              startPoint = "VisitDate",
+                              pad = 1)
+```
+
+To visualize the outputs we have to coerce each into a similar form, and, as each algorithm takes different slightly different inputs, the output of calling each function is not standardized. This was done purposefully. In a later update I'll add a function to automatically coerce each algorithm into something cohesive.
+
+```{r}
+# custom plotting theme
+theme_trueMinimal <- function(base_size = 14, base_family = "") {
+  theme_bw(base_size = base_size, base_family = base_family) %+replace% 
+    theme(axis.ticks        = element_blank(), 
+          legend.background = element_blank(), 
+          legend.key        = element_blank(), 
+          panel.background  = element_blank(), 
+          strip.background  = element_blank(), 
+          panel.border      = element_blank(),
+          panel.grid.major  = element_blank(), 
+          panel.grid.minor  = element_blank(),
+          plot.background   = element_blank(), 
+          axis.line         = element_line(), 
+          axis.line.y       = element_blank(),
+          axis.line.x       = element_blank(),
+          axis.title        = element_text(),
+          plot.title        = element_text(hjust = 0.5),
+          complete = TRUE)
+}
+
+# Wrapper for plot_algo_removed
+rmplot <- function(df, title) {
+  plot_algo_removed(
+    df = df,
+    input = "Input",
+    output = "Output",
+    title = title
+  ) +
+  theme_trueMinimal(14) +
+  expand_limits(y = c(0, 1100))
+}
+
+#------------------------------------- Raw -----------------------------------#
+
+p0 <- samp %>%
+  ggplot(aes(x = "", y = Weight_aug)) +
+  geom_jitter(alpha = 0.2, color = "black") +
+  expand_limits(y = c(0, 1100)) +
+  theme_trueMinimal(14) +
+  labs(x = "", y = "", title = "Unprocessed Weight")
+
+#--------------------------------- Janney 2016 -------------------------------#
+
+janney_df <- janney_df %>%
+  select(id, WeightDate, measout) %>%
+  rename(Output = measout) %>%
+  right_join(
+    samp %>%
+      select(id, WeightDate, Weight_aug) %>%
+      rename(Input = Weight_aug),
+    by = c("id", "WeightDate")
+  ) %>%
+  mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
+
+p1 <- rmplot(df = janney_df, title = "Janney et al., 2016")
+
+#-------------------------------- Littman 2012 -------------------------------#
+
+littman_df <- littman_df %>%
+  select(Weight_aug, measout) %>%
+  rename(Input = Weight_aug, Output = measout) %>%
+  mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
+
+p2 <- rmplot(df = littman_df, title = "Littman et al., 2012")
+
+#-------------------------------- Breland 2017 -------------------------------#
+
+breland_df <- breland_df %>%
+  select(Weight_aug, measout) %>%
+  rename(Input = Weight_aug, Output = measout) %>%
+  mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
+
+p3 <- rmplot(df = breland_df, title = "Breland et al. 2017")
+
+#-------------------------------- Maguen 2013 --------------------------------#
+
+maguen_df <- maguen_df %>%
+  select(Weight_aug, measout) %>%
+  rename(Input = Weight_aug, Output = measout) %>%
+  mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
+
+p4 <- rmplot(df = maguen_df, title = "Maguen et al., 2013")
+
+#------------------------------- Goodrich 2016 -------------------------------#
+
+goodrich_df <- goodrich_df %>%
+  select(id, WeightDate, measout) %>%
+  rename(Output = measout) %>%
+  right_join(
+    samp %>%
+      select(id, WeightDate, Weight_aug) %>%
+      rename(Input = Weight_aug),
+    by = c("id", "WeightDate")
+  ) %>%
+  mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
+
+p5 <- rmplot(df = goodrich_df, title = "Goodrich et al., 2016")
+
+#----------------------------- Chan & Raffa 2017 -----------------------------#
+
+chan_df <- chan_df %>%
+  select(Weight_aug, measout) %>%
+  rename(Input = Weight_aug, Output = measout) %>%
+  mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
+
+p6 <- rmplot(df = chan_df, title = "Chan & Raffa, 2017")
+
+#------------------------------- Jackson 2015 --------------------------------#
+
+jackson_df <- samp %>%
+  select(id, Weight_aug) %>%
+  rename(Weight = Weight_aug) %>%
+  mutate(IO = "Input") %>%
+  bind_rows(
+    jackson_df %>%
+      select(id, measout) %>%
+      rename(Weight = measout) %>%
+      mutate(IO = "Output")
+  ) %>%
+  arrange(id, IO) %>%
+  mutate(IO = factor(IO))
+
+p7 <- jackson_df %>%
+  filter(IO == "Output") %>%
+  ggplot(aes(x = "", y = Weight)) +
+  geom_jitter(alpha = 0.2, color = "black") +
+  geom_jitter(
+    data = jackson_df %>% filter(IO == "Input"),
+    aes(x = "", y = Weight),
+    color = "red",
+    alpha = 0.5
+  ) +
+  theme_trueMinimal(14) +
+  labs(x = "", y = "", title = "Jackson et al., 2015") +
+  expand_limits(y = c(0, 1100))
+
+#--------------------------------- Buta 2018 ---------------------------------#
+
+buta_df <- buta_df %>%
+  select(id, WeightDate, Weight_aug) %>%
+  rename(Output = Weight_aug) %>%
+  right_join(
+    samp %>%
+      select(id, WeightDate, Weight_aug) %>%
+      rename(Input = Weight_aug),
+    by = c("id", "WeightDate")
+  ) %>%
+  mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
+
+p8 <- rmplot(df = buta_df, title = "Buta et al. 2018")
+
+#------------------------------ Kazerooni 2016 -------------------------------#
+
+kazerooni_df <- kazerooni_df %>%
+  select(id, WeightDate, Weight_aug) %>%
+  rename(Output = Weight_aug) %>%
+  right_join(
+    samp %>%
+      select(id, WeightDate, Weight_aug) %>%
+      rename(Input = Weight_aug),
+    by = c("id", "WeightDate")
+  ) %>%
+  mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
+
+p9 <- rmplot(df = kazerooni_df, title = "Kazerooni & Lim, 2016")
+
+#-------------------------------- Noel 2012 ----------------------------------#
+
+noel_df <- samp %>%
+  select(id, Weight_aug) %>%
+  rename(Weight = Weight_aug) %>%
+  mutate(IO = "Input") %>%
+  bind_rows(
+    noel_df %>%
+      distinct(id, FYQ, Qmedian) %>%
+      select(id, Qmedian) %>%
+      rename(Weight = Qmedian) %>%
+      mutate(IO = "Output")
+  ) %>%
+  arrange(id, IO) %>%
+  mutate(IO = factor(IO))
+
+p10 <- noel_df %>%
+  filter(IO == "Output") %>%
+  ggplot(aes(x = "", y = Weight)) +
+  geom_jitter(alpha = 0.2, color = "black") +
+  geom_jitter(
+    data = noel_df %>% filter(IO == "Input"),
+    aes(x = "", y = Weight),
+    color = "red",
+    alpha = 0.5
+  ) +
+  theme_trueMinimal(14) +
+  labs(x = "", y = "", title = "Noel et al., 2012") +
+  expand_limits(y = c(0, 1100))
+
+#----------------------------- Rosenberger 2011 ------------------------------#
+
+rosenberger_df <- rosenberger_df %>%
+  select(id, WeightDate, Weight_aug) %>%
+  rename(Output = Weight_aug) %>%
+  right_join(
+    samp %>%
+      select(id, WeightDate, Weight_aug) %>%
+      rename(Input = Weight_aug),
+    by = c("id", "WeightDate")
+  ) %>%
+  mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
+
+p11 <- rmplot(rosenberger_df, title = "Rosenberger et al. 2011")
+```
+
+Comparison of Algorithms depicting algorithm-removed weights (red) juxtaposed with raw weight data (black):
+
+```{r, cache = TRUE, eval = TRUE, echo = FALSE, fig.width = 14, fig.height = 16}
+library(ggpubr)
+figure <- ggpubr::ggarrange(p0, p1,  p2,
+                            p3, p4,  p5,
+                            p6, p7,  p8,
+                            p9, p10, p11,
+                            nrow = 4, ncol = 3)
+ggpubr::annotate_figure(figure, left = text_grob("Weight (lbs.)", rot = 90))
+```
+
+# Appendix
+
+## Helper Functions
+
+```{r, eval = TRUE, echo = FALSE}
+#' visualize algorithm output
+#'
+#' function to plot a 2D jittered plot juxtaposing algorithm-removed data on 
+#' "top" or in "front" of input data.
+#'
+#' @param df \code{data.frame} holding raw (input) measurements and algorithm-
+#'   processed (output) measurements.
+#' @param input string corresponding to the name of the original weight data in 
+#'   \code{df}.
+#' @param output string corresponding to the name of the algorithm processed 
+#'   weight data in \code{df}.
+#' @return ggplot object
+plot_algo_removed <- function(df, input, output, title) {
+  input  <- rlang::sym(input)
+  output <- rlang::sym(output)
+  
+  df %>%
+    filter(!is.na(!!output)) %>%
+    ggplot(aes(x = "", y = !!output)) +
+    geom_jitter(alpha = 0.2, color = "black") +
+    geom_jitter(
+      data = df %>% filter(!is.na(!!input)),
+      aes(x = "", y = !!input),
+      color = "red",
+      alpha = 0.5
+    ) +
+    theme_trueMinimal(14) +
+    labs(x = "", y = "", title = title)
+}
+```
+
+## R Session Info
+
+```{r, echo = FALSE, eval = TRUE}
+sessionInfo()
+```
+
+## References
