@@ -1,0 +1,37 @@
+Package: weightalgos
+Type: Package
+Title: Weight Measurement Algorithms
+Version: 0.0.0.9000
+Authors@R: person("Richard", "Evans", email = "Richard.Evans8@va.gov",
+ role = c("aut", "cre"))
+Description: A collection of weight measurement algorithms designed to prepare 
+    weight measurements for further analyses. Package contains 12 algorithms 
+    identified in the literature review "Annis, A. et al. Construction and Use 
+    of Body Weight Measures from Administrative Data in a Large National Health 
+    System: A Systematic Review. Obesity Reviews. 2020". In that work we 
+    identified 39 studies that constructed body weight measures from Veterans 
+    Health Administration data. Seven studies did not include enough information 
+    necessary to reconstruct a measurement processing algorithm, and of the 
+    remaining 32, 12 algorithms were deemed unique. See the project Github
+    github.com/ccmrcodes/WeightAlgorithms for example usage.
+URL: http://github.com/ccmrcodes/WeightAlgorithms
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+    data.table,
+    dplyr,
+    magrittr,
+    ggplot2,
+    rlang,
+    stats,
+    lme4
+RoxygenNote: 7.1.0
+Suggests: 
+    knitr,
+    rmarkdown,
+    ggpubr,
+    ggthemes,
+    tidyverse,
+    lubridate
+VignetteBuilder: knitr
