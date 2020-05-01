@@ -634,11 +634,11 @@ two steps before applying the below algorithm:
 
   /* eliminate measures flagged for deletion */
   DATA &DSN.;
-  	MERGE &DSN. first&DSN.(in = inf) last&DSN.(in = inl);
+  	MERGE &DSN. first&DSN.(in = inf rename=(del=fdel)) last&DSN.(in = inl rename=(del=ldel));
   	BY &IDVAR.;
   	KEEP &IDVAR. &DATEVAR. center;
-  	  IF ((inf) AND (del = fctr)) THEN DELETE;
-  	  IF ((inl) AND (del = lctr)) THEN DELETE;
+  	  IF ((inf) AND (fdel = fctr)) THEN DELETE;
+  	  IF ((inl) AND (ldel = lctr)) THEN DELETE;
   	RENAME center = &ANALYSISVAR.;
   RUN;
   
