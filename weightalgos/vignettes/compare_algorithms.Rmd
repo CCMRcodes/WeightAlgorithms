@@ -85,18 +85,29 @@ You may end up with duplicates based on the random sample, it won't appreciably 
 Just to compare,
 
 ```{r, echo = FALSE, eval = TRUE, fig.height = 6, fig.width = 8}
+or_pu <- c("#631647", "#FF8B0D")
+
 samp %>%
   select(id, Weight_orig, Weight_aug) %>%
   pivot_longer(
     cols = starts_with("Weight"), 
     names_to = "weight_version"
   ) %>%
-  ggplot(aes(x = value, fill = factor(weight_version))) +
+  ggplot(aes(
+    x = value, 
+    fill = factor(weight_version),
+    color = factor(weight_version)
+  )) +
   facet_wrap(vars(weight_version), nrow = 2) +
-  geom_density() +
+  geom_density(alpha = 0.5) +
   geom_rug() +
   theme_void() +
-  scale_fill_manual(values = c("#631647", "#FF8B0D"))
+  scale_fill_manual(values = or_pu) +
+  scale_color_manual(values = or_pu) +
+  theme(
+    legend.position = "none",
+    strip.text.x = element_text(margin = margin(0.5, 0, 0.5, 0, "cm"))
+  )
 ```
 
 The following can be done with the `all_algos()` function, but for illustration purposes each one will be demonstrated. Additionally, some issues with combining and coercing the output from multiple algorithms can be explained in greater detail.
@@ -118,6 +129,13 @@ littman_df <- littman(df = samp,
                       id = "id",
                       measures = "Weight_aug",
                       tmeasures = "WeightDate")
+
+#------------------------------ Maciejewski 2016 -----------------------------#
+
+maciejewski_df <- maciejewski2016(df = samp,
+                                  id = "id",
+                                  tmeasures = "WeightDate",
+                                  measures = "Weight_aug")
 
 #-------------------------------- Breland 2017 -------------------------------#
 
@@ -217,10 +235,10 @@ theme_trueMinimal <- function(base_size = 14, base_family = "") {
 # Wrapper for plot_algo_removed
 rmplot <- function(df, title) {
   plot_algo_removed(
-    df = df,
-    input = "Input",
+    df     = df,
+    input  = "Input",
     output = "Output",
-    title = title
+    title  = title
   ) +
   theme_trueMinimal(14) +
   expand_limits(y = c(0, 1100))
@@ -230,7 +248,7 @@ rmplot <- function(df, title) {
 
 p0 <- samp %>%
   ggplot(aes(x = "", y = Weight_aug)) +
-  geom_jitter(alpha = 0.2, color = "black") +
+  geom_jitter(alpha = 0.4, color = "black") +
   expand_limits(y = c(0, 1100)) +
   theme_trueMinimal(14) +
   labs(x = "", y = "", title = "Unprocessed Weight")
@@ -259,6 +277,25 @@ littman_df <- littman_df %>%
 
 p2 <- rmplot(df = littman_df, title = "Littman et al., 2012")
 
+#------------------------------ Maciejewski 2016 -----------------------------#
+
+maciejewski_df <- maciejewski_df %>%
+  select(subject_id, measurement_date, measurement) %>%
+  rename(
+    id = subject_id,
+    WeightDate = measurement_date,
+    Output = measurement
+  ) %>%
+  right_join(
+    samp %>%
+      select(id, WeightDate, Weight_aug) %>%
+      rename(Input = Weight_aug),
+    by = c("id", "WeightDate")
+  ) %>%
+  mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
+
+p3 <- rmplot(df = maciejewski_df, title = "Maciejewski et al., 2016")
+
 #-------------------------------- Breland 2017 -------------------------------#
 
 breland_df <- breland_df %>%
@@ -266,16 +303,22 @@ breland_df <- breland_df %>%
   rename(Input = Weight_aug, Output = measout) %>%
   mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
 
-p3 <- rmplot(df = breland_df, title = "Breland et al. 2017")
+p4 <- rmplot(df = breland_df, title = "Breland et al. 2017")
 
 #-------------------------------- Maguen 2013 --------------------------------#
 
 maguen_df <- maguen_df %>%
-  select(Weight_aug, measout) %>%
-  rename(Input = Weight_aug, Output = measout) %>%
+  select(id, WeightDate, measout) %>% 
+  rename(Output = measout) %>% 
+  right_join(
+    samp %>%
+        select(id, WeightDate, Weight_aug) %>%
+        rename(Input = Weight_aug),
+    by = c("id", "WeightDate")
+) %>% 
   mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
 
-p4 <- rmplot(df = maguen_df, title = "Maguen et al., 2013")
+p5 <- rmplot(df = maguen_df, title = "Maguen et al., 2013")
 
 #------------------------------- Goodrich 2016 -------------------------------#
 
@@ -290,7 +333,7 @@ goodrich_df <- goodrich_df %>%
   ) %>%
   mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
 
-p5 <- rmplot(df = goodrich_df, title = "Goodrich et al., 2016")
+p6 <- rmplot(df = goodrich_df, title = "Goodrich et al., 2016")
 
 #----------------------------- Chan & Raffa 2017 -----------------------------#
 
@@ -299,7 +342,7 @@ chan_df <- chan_df %>%
   rename(Input = Weight_aug, Output = measout) %>%
   mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
 
-p6 <- rmplot(df = chan_df, title = "Chan & Raffa, 2017")
+p7 <- rmplot(df = chan_df, title = "Chan & Raffa, 2017")
 
 #------------------------------- Jackson 2015 --------------------------------#
 
@@ -316,7 +359,7 @@ jackson_df <- samp %>%
   arrange(id, IO) %>%
   mutate(IO = factor(IO))
 
-p7 <- jackson_df %>%
+p8 <- jackson_df %>%
   filter(IO == "Output") %>%
   ggplot(aes(x = "", y = Weight)) +
   geom_jitter(alpha = 0.2, color = "black") +
@@ -343,7 +386,7 @@ buta_df <- buta_df %>%
   ) %>%
   mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
 
-p8 <- rmplot(df = buta_df, title = "Buta et al. 2018")
+p9 <- rmplot(df = buta_df, title = "Buta et al. 2018")
 
 #------------------------------ Kazerooni 2016 -------------------------------#
 
@@ -358,7 +401,7 @@ kazerooni_df <- kazerooni_df %>%
   ) %>%
   mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
 
-p9 <- rmplot(df = kazerooni_df, title = "Kazerooni & Lim, 2016")
+p10 <- rmplot(df = kazerooni_df, title = "Kazerooni & Lim, 2016")
 
 #-------------------------------- Noel 2012 ----------------------------------#
 
@@ -376,7 +419,7 @@ noel_df <- samp %>%
   arrange(id, IO) %>%
   mutate(IO = factor(IO))
 
-p10 <- noel_df %>%
+p11 <- noel_df %>%
   filter(IO == "Output") %>%
   ggplot(aes(x = "", y = Weight)) +
   geom_jitter(alpha = 0.2, color = "black") +
@@ -403,17 +446,17 @@ rosenberger_df <- rosenberger_df %>%
   ) %>%
   mutate(Input = ifelse(!is.na(Output), NA_real_, Input))
 
-p11 <- rmplot(rosenberger_df, title = "Rosenberger et al. 2011")
+p12 <- rmplot(rosenberger_df, title = "Rosenberger et al. 2011")
 ```
 
 Comparison of Algorithms depicting algorithm-removed weights (red) juxtaposed with raw weight data (black):
 
-```{r, cache = TRUE, eval = TRUE, echo = FALSE, fig.width = 14, fig.height = 16}
+```{r, eval = TRUE, echo = FALSE, fig.width = 14, fig.height = 16}
 library(ggpubr)
-figure <- ggpubr::ggarrange(p0, p1,  p2,
-                            p3, p4,  p5,
-                            p6, p7,  p8,
-                            p9, p10, p11,
+figure <- ggpubr::ggarrange(p1,  p2,  p3,
+                            p4,  p5,  p6,
+                            p7,  p8,  p9,
+                            p10, p11, p12,
                             nrow = 4, ncol = 3)
 ggpubr::annotate_figure(figure, left = text_grob("Weight (lbs.)", rot = 90))
 ```
