@@ -4,4 +4,4 @@
 
 Requires R(>= 3.5.0)
 
-Install in R with `devtools::install_github("CCMRcodes/WeightAlgorithms/weightalgos", build_vignettes = TRUE)`
+Install in R with `devtools::install_github("CCMRcodes/WeightAlgorithms/weightalgos", build_vignettes = TRUE)`, then view vignette with `vignette("compare_algorithms")`
