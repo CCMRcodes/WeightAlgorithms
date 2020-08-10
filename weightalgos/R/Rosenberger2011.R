@@ -121,6 +121,7 @@ rosenberger <- function(df,
   setkeyv(DT, id)
 
   # Step 1: time from startPoint
+  time <- NULL
   DT[,
       `:=`(
         time = as.numeric(difftime(get(tmeasures),

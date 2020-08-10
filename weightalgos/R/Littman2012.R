@@ -118,6 +118,7 @@ littman <- function(df,
   setkeyv(DT, id)
 
   # first set outliers to NA
+  measures_aug_ <- NULL
   DT[,
       `:=`(
         measures_aug_ = ifelse(
@@ -128,6 +129,7 @@ littman <- function(df,
       )
      ][]
 
+  meanMeasures <- SDMeasures <- SD_threshold_ <- NULL
   # calc mean of measures per group
   DT[, `:=`(meanMeasures = mean(measures_aug_, na.rm = TRUE)), by = id][]
   # calc SD of weight per group
@@ -140,6 +142,7 @@ littman <- function(df,
   # question is greater than the SDMeasures
   # AND
   # 2) the SDMeasures was greater than SD_threshold_ of the mean
+  cond1 <- cond2 <- NULL
   DT[,
      `:=`(cond1 = ifelse(abs(measures_aug_ - meanMeasures) > SDMeasures, T, F))
      ][]

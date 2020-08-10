@@ -147,6 +147,7 @@ jackson <- function(df,
   data.table::setkeyv(DT, id)
 
   # Step 1: Set outliers to NA
+  measout <- NULL
   DT[,
       `:=`(
         measout = ifelse(
@@ -158,6 +159,7 @@ jackson <- function(df,
      ][]
 
   # Step 2: Set windows
+  dtime <- NULL
   DT[,
       `:=`(
         dtime = as.numeric(difftime(get(tmeasures),

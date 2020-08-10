@@ -18,7 +18,7 @@ plot_algo_removed <- function(df, input, output, title) {
   df %>%
     filter(!is.na(!!output)) %>%
     ggplot(aes(x = "", y = !!output)) +
-    geom_jitter(alpha = 0.2, color = "black") +
+    geom_jitter(alpha = 0.5, color = "black") +
     geom_jitter(
       data = df %>% filter(!is.na(!!input)),
       aes(x = "", y = !!input),

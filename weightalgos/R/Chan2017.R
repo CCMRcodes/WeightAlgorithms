@@ -88,6 +88,7 @@ chan <- function(df,
   setkeyv(DT, id)
 
   # Step 1: Set outliers to NA
+  measout <- NULL
   DT[,
      `:=`(
          measout = ifelse(
@@ -98,12 +99,14 @@ chan <- function(df,
        )
      ][]
 
+  meanMeasures <- SDMeasures <- NULL
   # calc mean of measures per group
   DT[, `:=`(meanMeasures = mean(measout, na.rm = TRUE)), by = id][]
   # calc SD of weight per group
   DT[, `:=`(SDMeasures   = sd(measout,   na.rm = TRUE)), by = id][]
 
   # calc UB and LB
+  UB <- LB <- NULL
   DT[, `:=`(LB = meanMeasures - (SDthreshold * SDMeasures))][]
   DT[, `:=`(UB = meanMeasures + (SDthreshold * SDMeasures))][]
 

@@ -103,6 +103,7 @@ noel <- function(df,
   DT <- data.table::as.data.table(df)
 
   # Step 1: Set outliers to NA
+  output <- NULL
   DT[,
       `:=`(
         output = ifelse(
@@ -114,6 +115,7 @@ noel <- function(df,
      ][]
 
   # Step 2: Set Fiscal Years and Quarters
+  FYQ <- NULL
   DT[,
       `:=`(
         FYQ = lubridate::quarter(get(tmeasures),
@@ -125,6 +127,8 @@ noel <- function(df,
   # Step 3: aggregate median weight by ID, Fiscal Year and Quarter
   key_cols <- c(id, "FYQ")
   setkeyv(DT, key_cols)
+
+  Qmedian <- NULL
   DT[, `:=`(Qmedian = median(output, na.rm = TRUE)), keyby = key_cols][]
   DT$output <- NULL
 

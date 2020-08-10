@@ -92,6 +92,7 @@ buta <- function(df,
   data.table::setorderv(DT, c(id, tmeasures), c(1, 1))
 
   # find max count for person i, if k = 1, remove person
+  k <- NULL
   DT[, k := .(.N), by = .(id)]
   DT <- DT[k > 1, -c("k")]
   DT

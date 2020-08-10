@@ -97,9 +97,9 @@ kazerooni <- function(df,
         print(
           paste0(
             "date type of tmeasures (",
-            class(DF[[tmeasures]]),
+            class(df[[tmeasures]]),
             ") != date type of startPoint (",
-            class(DF[[startPoint]])[1],
+            class(df[[startPoint]])[1],
             ")"
           )
         )
@@ -128,6 +128,7 @@ kazerooni <- function(df,
   tmeasures  <- rlang::sym(tmeasures)
   startPoint <- rlang::sym(startPoint)
 
+  dtime <- NULL
   df <- df %>%
     mutate(
       dtime = as.numeric(

@@ -112,6 +112,7 @@ maguen <- function(df,
   )
 
   # step 1: outliers
+  Output <- NULL
   df <- df %>%
     mutate(
       Output = ifelse(
@@ -162,6 +163,7 @@ maguen <- function(df,
 
   df$resid <- residuals(lmm) # add conditional residuals at ith level
 
+  resid <- NULL
   df <- df %>%
     mutate(
       measout = ifelse(abs(resid) >= ResidThreshold, NA_real_, Output)

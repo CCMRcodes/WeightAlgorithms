@@ -91,6 +91,7 @@ breland <- function(df,
   setkeyv(DT, id)
 
   # Round to 2 decimal places
+  measout <- NULL
   DT[, `:=`(measout = round(get(measures), 2))][]
 
   # Set outliers to NA
@@ -109,8 +110,11 @@ breland <- function(df,
   setorderv(DT, c(id, tmeasures))
 
   # fast lead and lag with data.table
+  backward <- forward <- NULL
   DT[, `:=`(backward = shift(measout, 1, NA, "lag")),  by = id][]
   DT[, `:=`(forward  = shift(measout, 1, NA, "lead")), by = id][]
+
+  R1_ind <- R2_ind <- NULL
 
   DT <- DT %>%
     dplyr::mutate(

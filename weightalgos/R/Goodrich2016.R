@@ -84,24 +84,28 @@ big_change_outliers <- function(df,
   setorderv(DT, c(id, tmeasures))
 
   # fast lead with data.table
+  forward <- NULL
   DT[,
       `:=`(
-        forward = shift(get(measures),
-                        n = 1L,
-                        fill = NA,
-                        type = "lead")
+        forward = shift(
+          get(measures),
+          n = 1L,
+          fill = NA,
+          type = "lead"
+        )
       ),
      by = id
      ][]
 
   # remove weight changes > wtchng_thresh
+  outlier <- NULL
   DT$outlier <- abs(DT[[measures]] - DT$forward) > wtchng_thresh
   DT <- DT %>%
     mutate(
       measout = case_when(
-        outlier ~ NA_real_,
+        outlier        ~ NA_real_,
         is.na(outlier) ~ DT[[measures]],
-        TRUE ~ DT[[measures]]
+        TRUE           ~ DT[[measures]]
       )
     ) %>%
     select(-forward, -outlier)
@@ -216,6 +220,7 @@ goodrich <- function(df,
       outliers = outliers
     )
 
+  measout <- NULL
   lookForwardAndRemove.df <-
     big_change_outliers(
       df = WindowsAndOutliers.df,
@@ -227,6 +232,7 @@ goodrich <- function(df,
 
   if (excludeSubject) {
 
+    FlagForRemoval <- NULL
     excluded.df <- lookForwardAndRemove.df %>%
       filter(is.na(measout)) %>%
       select(id) %>%
