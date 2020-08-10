@@ -25,8 +25,9 @@ Imports:
     ggplot2,
     rlang,
     stats,
-    lme4
-RoxygenNote: 7.1.0
+    lme4,
+    methods
+RoxygenNote: 7.1.1
 Suggests: 
     knitr,
     rmarkdown,

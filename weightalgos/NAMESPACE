@@ -1,2 +1,36 @@
 exportPattern("^[[:alpha:]]+")
 import(data.table)
+importFrom("methods", "is")
+importFrom(
+  "stats",
+  "as.formula",
+  "median",
+  "residuals",
+  "sd"
+)
+importFrom(
+  "dplyr",
+  "%>%",
+  "arrange",
+  "case_when",
+  "distinct",
+  "filter",
+  "group_by",
+  "left_join",
+  "mutate",
+  "rename",
+  "right_join",
+  "row_number",
+  "select",
+  "slice",
+  "ungroup"
+)
+importFrom(
+  "ggplot2",
+  "aes",
+  "element_text",
+  "geom_jitter",
+  "ggplot",
+  "labs",
+  "theme"
+)
