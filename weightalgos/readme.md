@@ -2,4 +2,4 @@
 
 ## Version 0.0.0
 
-Install in R with `devtools::install_github("CCMRcodes/WeightAlgorithms/weightalgos")`
+Install in R with `devtools::install_github("CCMRcodes/WeightAlgorithms/weightalgos", build_vignettes = TRUE)`
