@@ -14,6 +14,7 @@ Description: A collection of weight measurement algorithms designed to prepare
     necessary to reconstruct a measurement processing algorithm, and of the 
     remaining 32, 12 algorithms were deemed unique. See the project Github
     github.com/ccmrcodes/WeightAlgorithms for example usage.
+Depends: R (>= 3.5.0)
 URL: http://github.com/ccmrcodes/WeightAlgorithms
 License: MIT + file LICENSE
 Encoding: UTF-8
