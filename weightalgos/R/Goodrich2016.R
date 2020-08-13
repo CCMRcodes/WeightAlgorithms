@@ -130,11 +130,11 @@ big_change_outliers <- function(df,
 #'   \code{df}, e.g., numeric weight data if using to clean weight data.
 #' @param tmeasures string corresponding to the name of the column of measure
 #'   dates and/or times in \code{df}.
-#' @param startPoint string corresponding to the name of the column in \code{df}
-#'   holding the time at which subsequent measurement dates will be assessed,
-#'   should be the same for each person. Eg., if t = 0 (\code{t[1]}) corresponds
-#'   to an index visit held by the variable \code{VisitDate}, then
-#'   \code{startPoint} should be set to \code{VisitDate}.
+#' @param start_point string corresponding to the name of the column in
+#'   \code{df} holding the time at which subsequent measurement dates will be
+#'   assessed, should be the same for each person. Eg., if t = 0 (\code{t[1]})
+#'   corresponds to an index visit held by the variable \code{VisitDate}, then
+#'   \code{start_point} should be set to \code{VisitDate}.
 #' @param t numeric vector of time points to collect measurements, eg.
 #'   \code{c(0, 182.5, 365)} for measure collection at t = 0, t = 180 (6 months
 #'   from t = 0), and t = 365 (1 year from t = 0). Default is
@@ -154,14 +154,14 @@ big_change_outliers <- function(df,
 #' @param wtchng_thresh numeric scalar used as a cutoff for higher than (or
 #'   lower than) expected weight changes from one time point j to time point
 #'   j + 1, by person or group. Default is 100.
-#' @param excludeSubject logical. If TRUE remove groups meeting the exclusion
+#' @param exclude_subject logical. If TRUE remove groups meeting the exclusion
 #'   criteria.
 #' @return returns a data frame with 3 new columns, \code{time} (the actual time
 #'   of captured measurement data as dictated by \code{t} +/- \code{windows}),
-#'   \code{measureTime} (which time-point the data in \code{measout} refers to
+#'   \code{tmeasures} (which time-point the data in \code{measout} refers to
 #'   as dictated by \code{t}), and \code{measout} (the "cleaned" measure). The
 #'   result will contain up to \code{length(t)} rows per group \code{id}. If
-#'   \code{excludeSubject} is set to TRUE, those meeting the exclusion criteria
+#'   \code{exclude_subject} is set to TRUE, those meeting the exclusion criteria
 #'   are removed from the resultant data frame.
 #' @examples
 #' library(dplyr)
@@ -172,7 +172,7 @@ big_change_outliers <- function(df,
 #'    id = "id",
 #'    measures = "Weight",
 #'    tmeasures = "WeightDate",
-#'    startPoint = "VisitDate"
+#'    start_point = "VisitDate"
 #'   )
 #'
 #' # dplyr::glimpse(goodrich_df)
@@ -200,13 +200,13 @@ goodrich <- function(df,
                      id,
                      measures,
                      tmeasures,
-                     startPoint,
+                     start_point,
                      t = c(0, 182, 365),
                      windows = c(30, 60, 60),
                      outliers = list(LB = c(80, 80, 80),
                                      UB = c(500, 500, 500)),
                      wtchng_thresh = 100,
-                     excludeSubject = FALSE){
+                     exclude_subject = FALSE){
 
   WindowsAndOutliers.df <-
     janney(
@@ -214,7 +214,7 @@ goodrich <- function(df,
       id,
       measures,
       tmeasures,
-      startPoint,
+      start_point,
       t = t,
       windows = windows,
       outliers = outliers
@@ -230,7 +230,7 @@ goodrich <- function(df,
       wtchng_thresh = wtchng_thresh
     )
 
-  if (excludeSubject) {
+  if (exclude_subject) {
 
     FlagForRemoval <- NULL
     excluded.df <- lookForwardAndRemove.df %>%
@@ -242,10 +242,12 @@ goodrich <- function(df,
       filter(is.na(FlagForRemoval)) %>%
       select(-FlagForRemoval)
 
-    return(excluded.df)
+    return(as.data.frame(excluded.df))
 
   } else {
-    return(lookForwardAndRemove.df)
+
+    return(as.data.frame(lookForwardAndRemove.df))
+
   }
 }
 

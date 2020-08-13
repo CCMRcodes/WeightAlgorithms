@@ -45,18 +45,18 @@
 #'   include on the RHS of the internal mixed model. E.g.,
 #'   \code{c("Age", "Gender")} would generate a model of the form
 #'   \code{measures ~ Age + Gender + (1|id)}.
-#' @param ResidThreshold single numeric value to be used as a cut off value for
+#' @param resid_threshold single numeric value to be used as a cut off value for
 #'   the conditional (response) residual for each measurement. Lower values are
 #'   more conservative.
-#' @param AddInternals logical, adds additional columns to output data frame:
+#' @param add_internals logical, adds additional columns to output data frame:
 #'   \code{Output}, input data with outliers set to \code{NA}; \code{t}, time
 #'   standardized for each group in \code{id}; \code{resid}, the residual from
 #'   the result of \code{lme4::lmer}. Defaults to FALSE.
 #' @param ... any number of named arguments for the \code{lme4::lmer} model
-#' @return if AddInternals is FALSE, returns input data frame with processed
-#'   data as an additional column \code{measout}. if \code{AddInternals} is TRUE
+#' @return if add_internals is FALSE, returns input data frame with processed
+#'   data as an additional column \code{measout}. if \code{add_internals} is TRUE
 #'   then it returns the input data frame with processed data \code{measout} and
-#'   columns described in \code{AddInternals}.
+#'   columns described in \code{add_internals}.
 #' @examples
 #' library(dplyr)
 #' library(ggplot2)
@@ -68,7 +68,7 @@
 #'    measures = "Weight",
 #'    tmeasures = "WeightDate",
 #'    variables = c("Age", "Sex"),
-#'    AddInternals = TRUE
+#'    add_internals = TRUE
 #'   )
 #'
 #' # dplyr::glimpse(maguen_df)
@@ -91,8 +91,8 @@ maguen <- function(df,
                    tmeasures,
                    outliers = list(LB = 70, UB = 700),
                    variables = NULL,
-                   ResidThreshold = 10,
-                   AddInternals = FALSE,
+                   resid_threshold = 10,
+                   add_internals = FALSE,
                    ...) {
 
   tryCatch(
@@ -166,14 +166,15 @@ maguen <- function(df,
   resid <- NULL
   df <- df %>%
     mutate(
-      measout = ifelse(abs(resid) >= ResidThreshold, NA_real_, Output)
+      measout = ifelse(abs(resid) >= resid_threshold, NA_real_, Output)
     )
 
-  if (AddInternals) {
-    df
+  if (add_internals) {
+    as.data.frame(df)
   } else {
     df %>%
-      dplyr::select(-c(Output, t, resid))
+      dplyr::select(-c(Output, t, resid)) %>%
+      as.data.frame()
   }
 }
 

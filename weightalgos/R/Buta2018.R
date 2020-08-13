@@ -95,6 +95,6 @@ buta <- function(df,
   k <- NULL
   DT[, k := .(.N), by = .(id)]
   DT <- DT[k > 1, -c("k")]
-  DT
+  as.data.frame(DT)
 }
 

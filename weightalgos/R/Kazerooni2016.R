@@ -30,11 +30,11 @@
 #'   \code{df}, e.g., numeric weight data if using to clean weight data.
 #' @param tmeasures string corresponding to the name of the column of measure
 #'   dates and/or times in \code{df}.
-#' @param startPoint string corresponding to the name of the column in \code{df}
+#' @param start_point string corresponding to the name of the column in \code{df}
 #'   holding the time at which subsequent measurement dates will be assessed,
 #'   should be the same for each person. Eg., if t = 0 (\code{t[1]}) corresponds
 #'   to an index visit held by the variable \code{VisitDate}, then
-#'   \code{StartPoint} should be set to \code{VisitDate}.
+#'   \code{start_point} should be set to \code{VisitDate}.
 #' @param t numeric vector of time points to collect measurements, e.g.
 #'   \code{c(0, 182.5, 365)} for measure collection at t = 0, t = 180 (6 months
 #'   from t = 0), and t = 365 (1 year from t = 0). Default is
@@ -61,7 +61,7 @@
 #'    id = "id",
 #'    measures = "Weight",
 #'    tmeasures = "WeightDate",
-#'    startPoint = "VisitDate"
+#'    start_point = "VisitDate"
 #'   )
 #'
 #' # dplyr::glimpse(kazerooni_df)
@@ -86,20 +86,20 @@ kazerooni <- function(df,
                       id,
                       measures,
                       tmeasures,
-                      startPoint,
+                      start_point,
                       t = c(0, 90, 180),
                       windows = list(LB = c(30, 0, 0),
                                      UB = c(0, 90, 185))) {
 
   tryCatch(
-    if (class(df[[tmeasures]])[1] != class(df[[startPoint]])[1]) {
+    if (class(df[[tmeasures]])[1] != class(df[[start_point]])[1]) {
       stop(
         print(
           paste0(
             "date type of tmeasures (",
             class(df[[tmeasures]]),
-            ") != date type of startPoint (",
-            class(df[[startPoint]])[1],
+            ") != date type of start_point (",
+            class(df[[start_point]])[1],
             ")"
           )
         )
@@ -124,16 +124,16 @@ kazerooni <- function(df,
   )
 
   # compute difference in time between t0 and all t_j
-  id         <- rlang::sym(id)
-  tmeasures  <- rlang::sym(tmeasures)
-  startPoint <- rlang::sym(startPoint)
+  id          <- rlang::sym(id)
+  tmeasures   <- rlang::sym(tmeasures)
+  start_point <- rlang::sym(start_point)
 
   dtime <- NULL
   df <- df %>%
     mutate(
       dtime = as.numeric(
         difftime(
-          !!tmeasures, !!startPoint,
+          !!tmeasures, !!start_point,
           tz = "utc", units = "days"
         )
       )
@@ -154,6 +154,7 @@ kazerooni <- function(df,
     arrange(!!id, !!tmeasures) %>%
     group_by(!!id) %>%
     filter(max(row_number()) >= 3) %>% # must have all 3 time points
-    ungroup()
+    ungroup() %>%
+    as.data.frame()
 }
 

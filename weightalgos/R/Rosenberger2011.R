@@ -36,11 +36,11 @@
 #'   unit of time (day, month, fiscal year, etc.), if it is a precise date-time
 #'   object (\code{?POSIXlt}), there may not be more than one measurement within
 #'   the same unit of time.
-#' @param startPoint string corresponding to the name of the column in \code{df}
+#' @param start_point string corresponding to the name of the column in \code{df}
 #'   holding the time at which subsequent measurement dates will be assessed,
 #'   should be the same for each group in \code{id}. E.g., if t = 0
 #'   (\code{t[1]}) corresponds to an index visit held by the variable
-#'   \code{VisitDate}, then \code{startPoint} should be set to \code{VisitDate}.
+#'   \code{VisitDate}, then \code{start_point} should be set to \code{VisitDate}.
 #' @param t numeric vector of time points to collect measurements, E.g.
 #'   Rosenberger et al. chose a total time period of 6 years, dividing each year
 #'   into intervals of 6-months each, for a total of 12 time points
@@ -62,7 +62,7 @@
 #'    df = cdw1000,
 #'    id = "id",
 #'    tmeasures = "WeightDate",
-#'    startPoint = "VisitDate",
+#'    start_point = "VisitDate",
 #'    pad = 1
 #'   )
 #'
@@ -87,20 +87,20 @@
 rosenberger <- function(df,
                         id,
                         tmeasures,
-                        startPoint,
+                        start_point,
                         t = seq(0, 2, by = 0.5),
                         pad = 0,
                         texclude = NULL) {
 
   tryCatch(
-    if (class(df[[tmeasures]])[1] != class(df[[startPoint]])[1]) {
+    if (class(df[[tmeasures]])[1] != class(df[[start_point]])[1]) {
       stop(
         print(
           paste0(
             "date type of tmeasures (",
             class(df[[tmeasures]]),
-            ") != date type of startPoint (",
-            class(df[[startPoint]])[1],
+            ") != date type of start_point (",
+            class(df[[start_point]])[1],
             ")"
           )
         )
@@ -120,12 +120,12 @@ rosenberger <- function(df,
   DT <- data.table::as.data.table(df)
   setkeyv(DT, id)
 
-  # Step 1: time from startPoint
+  # Step 1: time from start_point
   time <- NULL
   DT[,
       `:=`(
         time = as.numeric(difftime(get(tmeasures),
-                                   get(startPoint),
+                                   get(start_point),
                                    tz = "UTC",
                                    units = "days"))
       )
@@ -160,6 +160,7 @@ rosenberger <- function(df,
     arrange(!!id, !!tmeasures) %>%
     group_by(!!id) %>%
     filter(max(row_number()) >= texclude) %>% # must have at least texclude
-    ungroup()
+    ungroup() %>%
+    as.data.frame()
 }
 

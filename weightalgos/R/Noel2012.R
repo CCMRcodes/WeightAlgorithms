@@ -133,10 +133,15 @@ noel <- function(df,
   DT$output <- NULL
 
   if (collapse) {
+
     DT %>%
-      distinct(id, FYQ, Qmedian, .keep_all = TRUE)
+      distinct(id, FYQ, Qmedian, .keep_all = TRUE) %>%
+      as.data.frame()
+
   } else {
-    DT
+
+    as.data.frame(DT)
+
   }
 }
 

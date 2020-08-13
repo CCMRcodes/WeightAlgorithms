@@ -2039,7 +2039,7 @@ maciejewski_algo <- function(df,
 
 #' Maciejewski algorithm complete
 #'
-#' \code{maciejewski2016} applies both part I and II of the Maciejewski 2016
+#' \code{maciejewski} applies both part I and II of the Maciejewski 2016
 #' algorithm to a "raw" input dataset, it is basically \code{maciejewski_algo}
 #' with additional cleaning processes. The various threshold values used
 #' throughout these macros were selected via an iterative process where they
@@ -2118,7 +2118,7 @@ maciejewski_algo <- function(df,
 #' \dontrun{
 #' data(cdw1000)
 #'
-#' maciejewski.dt <- maciejewski2016(
+#' maciejewski.dt <- maciejewski(
 #'   df = cdw1000,
 #'   id = 'id',
 #'   tmeasures = 'WeightDate',
@@ -2127,7 +2127,7 @@ maciejewski_algo <- function(df,
 #'
 #' glimpse(maciejewski.dt)
 #'
-#' maciejewski.dt <- maciejewski2016(
+#' maciejewski.dt <- maciejewski(
 #'   df = cdw1000,
 #'   id = 'id',
 #'   tmeasures = 'WeightDate',
@@ -2135,7 +2135,7 @@ maciejewski_algo <- function(df,
 #'   record_execution_times = TRUE
 #' )
 #'
-#' maciejewski.dt <- maciejewski2016(
+#' maciejewski.dt <- maciejewski(
 #'   df = cdw1000,
 #'   id = 'id',
 #'   tmeasures = 'WeightDate',
@@ -2144,24 +2144,24 @@ maciejewski_algo <- function(df,
 #'   record_execution_times = TRUE
 #' )
 #' }
-maciejewski2016 <- function(df,
-                            id,
-                            tmeasures,
-                            measures,
-                            varvec = NULL,
-                            n_cleaning_iters = 1L,
-                            keep_uncleanable = TRUE,
-                            outliers = list('LB' = 75L, 'UB' = 700L),
-                            sd_thresholds = list(
-                              'same_day'     = 2L,
-                              'high_sd_flag' = 20L,
-                              'first_last'   = 35L,
-                              'abc_low'      = 10L,
-                              'abc_high'     = 45L
-                            ),
-                            skip_consolidation = FALSE,
-                            record_execution_times = FALSE,
-                            print_execution_times = record_execution_times) {
+maciejewski <- function(df,
+                        id,
+                        measures,
+                        tmeasures,
+                        varvec = NULL,
+                        n_cleaning_iters = 1L,
+                        keep_uncleanable = TRUE,
+                        outliers = list('LB' = 75L, 'UB' = 700L),
+                        sd_thresholds = list(
+                          'same_day'     = 2L,
+                          'high_sd_flag' = 20L,
+                          'first_last'   = 35L,
+                          'abc_low'      = 10L,
+                          'abc_high'     = 45L
+                        ),
+                        skip_consolidation = FALSE,
+                        record_execution_times = FALSE,
+                        print_execution_times = record_execution_times) {
 
   ## Disable fancy quotes and string-to-factor coercion for the duration of this
   # function (if enabled by default)
@@ -2355,6 +2355,6 @@ maciejewski2016 <- function(df,
     print(TimingDF)
   }
 
-  return(DT)
+  return(as.data.frame(DT))
 }
 

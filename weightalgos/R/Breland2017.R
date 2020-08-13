@@ -36,17 +36,17 @@
 #' @param outliers object of type \code{list} with numeric inputs corresponding
 #'   to the upper and lower bound for each time entry. Default is
 #'   \code{list(LB = 75, UB = 700)}.
-#' @param RatioThresholds list of 2 lists, 1 for each ratio (prior and post
+#' @param ratio_thresholds list of 2 lists, 1 for each ratio (prior and post
 #'   measurements), with numeric inputs corresponding to the lower bound and
 #'   upper bound for flagging erroneous measurements. Default lower bound is
 #'   0.67 and upper bound 1.50, same as Breland et al. 2017.
-#' @param AddInternals logical, adds additional columns to output data frame
+#' @param add_internals logical, adds additional columns to output data frame
 #'   detailing the backward, forward, ratios, and ratio indicators used
 #'   interally to process the data. Defaults to FALSE.
-#' @return if AddInternals is FALSE, returns input data frame with processed
-#'   data as an additional column \code{measout}. if AddInternals is TRUE then
+#' @return if add_internals is FALSE, returns input data frame with processed
+#'   data as an additional column \code{measout}. if add_internals is TRUE then
 #'   it returns the input data frame with processed data \code{measout} and
-#'   columns described in \code{AddInternals}.
+#'   columns described in \code{add_internals}.
 #' @examples
 #' library(dplyr)
 #' data(cdw32)
@@ -64,11 +64,11 @@ breland <- function(df,
                     measures,
                     tmeasures,
                     outliers = list(LB = 75, UB = 700),
-                    RatioThresholds = list(Ratio1 = list(low = 0.67,
+                    ratio_thresholds = list(Ratio1 = list(low = 0.67,
                                                          high = 1.50),
-                                           Ratio2 = list(low = 0.67,
-                                                         high = 1.50)),
-                    AddInternals = FALSE) {
+                                            Ratio2 = list(low = 0.67,
+                                                          high = 1.50)),
+                    add_internals = FALSE) {
 
   tryCatch(
     if (!is.numeric(df[[measures]])) {
@@ -120,14 +120,14 @@ breland <- function(df,
     dplyr::mutate(
       Ratio1 = measout / backward,
       R1_ind = dplyr::case_when(
-        Ratio1 <= RatioThresholds[[1]][[1]] ~ -1L,
-        Ratio1 >= RatioThresholds[[1]][[2]] ~  1L,
+        Ratio1 <= ratio_thresholds[[1]][[1]] ~ -1L,
+        Ratio1 >= ratio_thresholds[[1]][[2]] ~  1L,
         TRUE ~ 0L
       ),
       Ratio2 = measout / forward,
       R2_ind = dplyr::case_when(
-        Ratio2 <= RatioThresholds[[2]][[1]] ~ -1L,
-        Ratio2 >= RatioThresholds[[2]][[2]] ~  1L,
+        Ratio2 <= ratio_thresholds[[2]][[1]] ~ -1L,
+        Ratio2 >= ratio_thresholds[[2]][[2]] ~  1L,
         TRUE ~ 0L
       ),
       measout = ifelse((R1_ind == 1 & R2_ind == 1) |
@@ -136,11 +136,12 @@ breland <- function(df,
                         measout)
     )
 
-  if (AddInternals) {
-    DT
+  if (add_internals) {
+    as.data.frame(DT)
   } else {
     DT %>%
-      dplyr::select(-c(backward:R2_ind))
+      dplyr::select(-c(backward:R2_ind)) %>%
+      as.data.frame()
   }
 }
 
