@@ -9,7 +9,7 @@ jackson(
   id,
   measures,
   tmeasures,
-  startPoint,
+  start_point,
   t = c(0, 182, 365, 730),
   windows = c(1, 90, 90, 90),
   outliers = c(75, 700)
@@ -31,11 +31,11 @@ a date object, there may be more than one weight on the same day, if it is
 a precise datetime object, there may not be more than one weight on the
 same day. Just something to look out for.}
 
-\item{startPoint}{string corresponding to the name of the column in \code{df}
-holding the time at which subsequent measurement dates will be assessed,
-should be the same for each person. Eg., if t = 0 (\code{t[1]}) corresponds
-to an index visit held by the variable \code{VisitDate}, then
-\code{startPoint} should be set to \code{VisitDate}.}
+\item{start_point}{string corresponding to the name of the column in
+\code{df} holding the time at which subsequent measurement dates will be
+assessed, should be the same for each person. Eg., if t = 0 (\code{t[1]})
+corresponds to an index visit held by the variable \code{VisitDate}, then
+\code{start_point} should be set to \code{VisitDate}.}
 
 \item{t}{numeric vector of time points to collect measurements, e.g.
 \code{c(0, 182.5, 365)} for measure collection at t = 0, t = 180 (6 months
@@ -46,7 +46,7 @@ from t = 0), and t = 365 (1 year from t = 0). Default is
 each time point in \code{t}. E.g. Jackson et al. 2015 use
 \code{c(1, 90, 90, 90)} for \code{t = c(0, 182.5, 365, 730)}, implying that
 the closest measurement t = 0 will be collected on the day of the
-\code{startPoint}. Subsequent measurements will be collected 90 days prior
+\code{start_point}. Subsequent measurements will be collected 90 days prior
 to and 90 days post t0+182.5 days, t0+365 days, and t0+730 days.}
 
 \item{outliers}{numeric vector corresponding to the upper and lower bound for
@@ -76,7 +76,7 @@ jackson_df <- jackson(
    id = "id",
    measures = "Weight",
    tmeasures = "WeightDate",
-   startPoint = "VisitDate"
+   start_point = "VisitDate"
   )
 
 # dplyr::glimpse(jackson_df)

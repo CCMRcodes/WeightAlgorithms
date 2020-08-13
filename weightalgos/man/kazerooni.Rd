@@ -9,7 +9,7 @@ kazerooni(
   id,
   measures,
   tmeasures,
-  startPoint,
+  start_point,
   t = c(0, 90, 180),
   windows = list(LB = c(30, 0, 0), UB = c(0, 90, 185))
 )
@@ -27,11 +27,11 @@ identifiers in \code{df}.}
 \item{tmeasures}{string corresponding to the name of the column of measure
 dates and/or times in \code{df}.}
 
-\item{startPoint}{string corresponding to the name of the column in \code{df}
+\item{start_point}{string corresponding to the name of the column in \code{df}
 holding the time at which subsequent measurement dates will be assessed,
 should be the same for each person. Eg., if t = 0 (\code{t[1]}) corresponds
 to an index visit held by the variable \code{VisitDate}, then
-\code{StartPoint} should be set to \code{VisitDate}.}
+\code{start_point} should be set to \code{VisitDate}.}
 
 \item{t}{numeric vector of time points to collect measurements, e.g.
 \code{c(0, 182.5, 365)} for measure collection at t = 0, t = 180 (6 months
@@ -68,7 +68,7 @@ kazerooni_df <- kazerooni(
    id = "id",
    measures = "Weight",
    tmeasures = "WeightDate",
-   startPoint = "VisitDate"
+   start_point = "VisitDate"
   )
 
 # dplyr::glimpse(kazerooni_df)

@@ -10,9 +10,9 @@ breland(
   measures,
   tmeasures,
   outliers = list(LB = 75, UB = 700),
-  RatioThresholds = list(Ratio1 = list(low = 0.67, high = 1.5), Ratio2 = list(low =
+  ratio_thresholds = list(Ratio1 = list(low = 0.67, high = 1.5), Ratio2 = list(low =
     0.67, high = 1.5)),
-  AddInternals = FALSE
+  add_internals = FALSE
 )
 }
 \arguments{
@@ -35,20 +35,20 @@ day.}
 to the upper and lower bound for each time entry. Default is
 \code{list(LB = 75, UB = 700)}.}
 
-\item{RatioThresholds}{list of 2 lists, 1 for each ratio (prior and post
+\item{ratio_thresholds}{list of 2 lists, 1 for each ratio (prior and post
 measurements), with numeric inputs corresponding to the lower bound and
 upper bound for flagging erroneous measurements. Default lower bound is
 0.67 and upper bound 1.50, same as Breland et al. 2017.}
 
-\item{AddInternals}{logical, adds additional columns to output data frame
+\item{add_internals}{logical, adds additional columns to output data frame
 detailing the backward, forward, ratios, and ratio indicators used
 interally to process the data. Defaults to FALSE.}
 }
 \value{
-if AddInternals is FALSE, returns input data frame with processed
-  data as an additional column \code{measout}. if AddInternals is TRUE then
+if add_internals is FALSE, returns input data frame with processed
+  data as an additional column \code{measout}. if add_internals is TRUE then
   it returns the input data frame with processed data \code{measout} and
-  columns described in \code{AddInternals}.
+  columns described in \code{add_internals}.
 }
 \description{
 \code{breland} returns input data frame with processed data as additional

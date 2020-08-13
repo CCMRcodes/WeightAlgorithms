@@ -11,8 +11,8 @@ maguen(
   tmeasures,
   outliers = list(LB = 70, UB = 700),
   variables = NULL,
-  ResidThreshold = 10,
-  AddInternals = FALSE,
+  resid_threshold = 10,
+  add_internals = FALSE,
   ...
 )
 }
@@ -41,11 +41,11 @@ include on the RHS of the internal mixed model. E.g.,
 \code{c("Age", "Gender")} would generate a model of the form
 \code{measures ~ Age + Gender + (1|id)}.}
 
-\item{ResidThreshold}{single numeric value to be used as a cut off value for
+\item{resid_threshold}{single numeric value to be used as a cut off value for
 the conditional (response) residual for each measurement. Lower values are
 more conservative.}
 
-\item{AddInternals}{logical, adds additional columns to output data frame:
+\item{add_internals}{logical, adds additional columns to output data frame:
 \code{Output}, input data with outliers set to \code{NA}; \code{t}, time
 standardized for each group in \code{id}; \code{resid}, the residual from
 the result of \code{lme4::lmer}. Defaults to FALSE.}
@@ -53,10 +53,10 @@ the result of \code{lme4::lmer}. Defaults to FALSE.}
 \item{...}{any number of named arguments for the \code{lme4::lmer} model}
 }
 \value{
-if AddInternals is FALSE, returns input data frame with processed
-  data as an additional column \code{measout}. if \code{AddInternals} is TRUE
+if add_internals is FALSE, returns input data frame with processed
+  data as an additional column \code{measout}. if \code{add_internals} is TRUE
   then it returns the input data frame with processed data \code{measout} and
-  columns described in \code{AddInternals}.
+  columns described in \code{add_internals}.
 }
 \description{
 For grouped time series, (e.g., per person) \code{maguen} removes outliers,
@@ -76,7 +76,7 @@ maguen_df <- maguen(
    measures = "Weight",
    tmeasures = "WeightDate",
    variables = c("Age", "Sex"),
-   AddInternals = TRUE
+   add_internals = TRUE
   )
 
 # dplyr::glimpse(maguen_df)

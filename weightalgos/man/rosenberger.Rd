@@ -8,7 +8,7 @@ rosenberger(
   df,
   id,
   tmeasures,
-  startPoint,
+  start_point,
   t = seq(0, 2, by = 0.5),
   pad = 0,
   texclude = NULL
@@ -28,11 +28,11 @@ unit of time (day, month, fiscal year, etc.), if it is a precise date-time
 object (\code{?POSIXlt}), there may not be more than one measurement within
 the same unit of time.}
 
-\item{startPoint}{string corresponding to the name of the column in \code{df}
+\item{start_point}{string corresponding to the name of the column in \code{df}
 holding the time at which subsequent measurement dates will be assessed,
 should be the same for each group in \code{id}. E.g., if t = 0
 (\code{t[1]}) corresponds to an index visit held by the variable
-\code{VisitDate}, then \code{startPoint} should be set to \code{VisitDate}.}
+\code{VisitDate}, then \code{start_point} should be set to \code{VisitDate}.}
 
 \item{t}{numeric vector of time points to collect measurements, E.g.
 Rosenberger et al. chose a total time period of 6 years, dividing each year
@@ -66,7 +66,7 @@ rosenberger_df <- rosenberger(
    df = cdw1000,
    id = "id",
    tmeasures = "WeightDate",
-   startPoint = "VisitDate",
+   start_point = "VisitDate",
    pad = 1
   )
 

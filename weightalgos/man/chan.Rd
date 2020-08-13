@@ -10,8 +10,8 @@ chan(
   measures,
   tmeasures,
   outliers = list(LB = 50, UB = 750),
-  SDthreshold = 3,
-  AddInternals = FALSE
+  sd_threshold = 3,
+  add_internals = FALSE
 )
 }
 \arguments{
@@ -34,23 +34,23 @@ on the same day.}
 to the upper and lower bound for each time entry. Default is
 \code{list(LB = 50, UB = 750)}.}
 
-\item{SDthreshold}{numeric scalar to be multiplied by the \code{SDMeasures}
+\item{sd_threshold}{numeric scalar to be multiplied by the \code{SDMeasures}
 per \code{id}. E.g., from Chan 2017, "...weights greater than 3 standard
 deviations above the mean..." implies \code{SDMeasures = 3}.}
 
-\item{AddInternals}{logical, adds additional columns to output data frame
+\item{add_internals}{logical, adds additional columns to output data frame
 describing the grouped mean (\code{meanMeasures}) and standard deviation
 (\code{SDMeasures}) used interally to process the data. Defaults to FALSE.}
 }
 \value{
-if AddInternals is FALSE, returns input data frame with processed
-  data as an additional column \code{measout}. if AddInternals is TRUE then
+if add_internals is FALSE, returns input data frame with processed
+  data as an additional column \code{measout}. if add_internals is TRUE then
   it returns the input data frame with processed data \code{measout} and
-  columns described in \code{AddInternals}.
+  columns described in \code{add_internals}.
 }
 \description{
 For grouped time series, (e.g., per person) Algorithm computes mean and SD of
-measurements, per group then removes measurements > \code{SDthreshold} + mean.
+measurements, per group then removes measurements > \code{sd_threshold} + mean.
 }
 \examples{
 library(dplyr)

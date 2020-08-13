@@ -9,12 +9,12 @@ goodrich(
   id,
   measures,
   tmeasures,
-  startPoint,
+  start_point,
   t = c(0, 182, 365),
   windows = c(30, 60, 60),
   outliers = list(LB = c(80, 80, 80), UB = c(500, 500, 500)),
   wtchng_thresh = 100,
-  excludeSubject = FALSE
+  exclude_subject = FALSE
 )
 }
 \arguments{
@@ -30,11 +30,11 @@ in \code{df}.}
 \item{tmeasures}{string corresponding to the name of the column of measure
 dates and/or times in \code{df}.}
 
-\item{startPoint}{string corresponding to the name of the column in \code{df}
-holding the time at which subsequent measurement dates will be assessed,
-should be the same for each person. Eg., if t = 0 (\code{t[1]}) corresponds
-to an index visit held by the variable \code{VisitDate}, then
-\code{startPoint} should be set to \code{VisitDate}.}
+\item{start_point}{string corresponding to the name of the column in
+\code{df} holding the time at which subsequent measurement dates will be
+assessed, should be the same for each person. Eg., if t = 0 (\code{t[1]})
+corresponds to an index visit held by the variable \code{VisitDate}, then
+\code{start_point} should be set to \code{VisitDate}.}
 
 \item{t}{numeric vector of time points to collect measurements, eg.
 \code{c(0, 182.5, 365)} for measure collection at t = 0, t = 180 (6 months
@@ -59,16 +59,16 @@ window functions will be applied.}
 lower than) expected weight changes from one time point j to time point
 j + 1, by person or group. Default is 100.}
 
-\item{excludeSubject}{logical. If TRUE remove groups meeting the exclusion
+\item{exclude_subject}{logical. If TRUE remove groups meeting the exclusion
 criteria.}
 }
 \value{
 returns a data frame with 3 new columns, \code{time} (the actual time
   of captured measurement data as dictated by \code{t} +/- \code{windows}),
-  \code{measureTime} (which time-point the data in \code{measout} refers to
+  \code{tmeasures} (which time-point the data in \code{measout} refers to
   as dictated by \code{t}), and \code{measout} (the "cleaned" measure). The
   result will contain up to \code{length(t)} rows per group \code{id}. If
-  \code{excludeSubject} is set to TRUE, those meeting the exclusion criteria
+  \code{exclude_subject} is set to TRUE, those meeting the exclusion criteria
   are removed from the resultant data frame.
 }
 \description{
@@ -86,7 +86,7 @@ goodrich_df <- goodrich(
    id = "id",
    measures = "Weight",
    tmeasures = "WeightDate",
-   startPoint = "VisitDate"
+   start_point = "VisitDate"
   )
 
 # dplyr::glimpse(goodrich_df)

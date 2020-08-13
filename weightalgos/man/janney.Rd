@@ -9,7 +9,7 @@ janney(
   id,
   measures,
   tmeasures,
-  startPoint,
+  start_point,
   t = c(0, 182.5, 365),
   windows = c(30, 60, 60),
   outliers = list(LB = c(91, 72, 72), UB = c(600, 650, 650))
@@ -28,11 +28,11 @@ in \code{df}.}
 \item{tmeasures}{string corresponding to the name of the column of measure
 dates and/or times in \code{df}.}
 
-\item{startPoint}{string corresponding to the name of the column in \code{df}
+\item{start_point}{string corresponding to the name of the column in \code{df}
 holding the time at which subsequent measurement dates will be assessed,
 should be the same for each group. Eg., if \code{t = 0} (\code{t[1]})
 corresponds to an index visit held by the variable \code{VisitDate}, then
-\code{startPoint} should be set to \code{VisitDate}.}
+\code{start_point} should be set to \code{VisitDate}.}
 
 \item{t}{numeric vector of time points to collect measurements, eg.
 \code{c(0, 182.5, 365)} for measure collection at \code{t = 0},
@@ -44,7 +44,7 @@ Janney et al. 2016}
 each time point in \code{t}. Eg. Janney et al. 2016 use
 \code{c(30, 60, 60)} for \code{t} of \code{c(0, 182.5, 365)}, implying that
 the closest measurement \code{t = 0} will be collected 30 days prior to and
-30 days post startPoint. Subsequent measurements will be collected 60 days
+30 days post start_point. Subsequent measurements will be collected 60 days
 prior to and 60 days post t0+182.5 days, and t0+365 days.}
 
 \item{outliers}{optional. object of type \code{list} with numeric inputs
@@ -74,7 +74,7 @@ janney_df <- janney(
    id = "id",
    measures = "Weight",
    tmeasures = "WeightDate",
-   startPoint = "VisitDate"
+   start_point = "VisitDate"
   )
 
 # dplyr::glimpse(janney_df)

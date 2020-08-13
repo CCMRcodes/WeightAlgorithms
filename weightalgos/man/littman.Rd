@@ -10,8 +10,8 @@ littman(
   measures,
   tmeasures,
   outliers = list(LB = c(75), UB = c(600)),
-  SDthreshold = 0.1,
-  AddInternals = FALSE
+  sd_threshold = 0.1,
+  add_internals = FALSE
 )
 }
 \arguments{
@@ -34,23 +34,23 @@ same day.}
 to the upper and lower bound for each time entry. Default is
 \code{list(LB = c(75), UB = c(600))}.}
 
-\item{SDthreshold}{numeric scalar to be multiplied by the \code{meanMeasures}
+\item{sd_threshold}{numeric scalar to be multiplied by the \code{meanMeasures}
 per \code{id}. E.g., from Littman 2012, "...We excluded any weight
 measurements that met the following 2 criteria: 1) the difference between
 the mean weight and weight in question was greater than the SD and 2) the
 SD was greater than 10 percent of the mean...." implies
-\code{SDthreshold = 0.1}.}
+\code{sd_threshold = 0.1}.}
 
-\item{AddInternals}{logical, adds additional columns to output data frame
+\item{add_internals}{logical, adds additional columns to output data frame
 detailing the group-wise means and standard deviations used interally to
 process the data. Defaults to FALSE.}
 }
 \value{
 input data.frame with additional column, \code{measout}, the
-  output/"cleaned" data. If \code{AddInternals == TRUE}, 5 additional columns
+  output/"cleaned" data. If \code{add_internals == TRUE}, 5 additional columns
   are added to the resultant data frame: code{meanMeasures},
   \code{mean(measures)} per \code{id}; \code{SDMeasures}, \code{SD(measures)}
-  per \code{id}; \code{SD_threshold_}, \code{mean(measures) * SDthreshold};
+  per \code{id}; \code{SD_threshold_}, \code{mean(measures) * sd_threshold};
   and \code{cond1} & \code{cond2}, logical vectors indicating the result of
   checking the two conditions; 1, the difference between the
   \code{meanMeasures} and code{measures_aug_} in question is greater than the
@@ -61,7 +61,7 @@ input data.frame with additional column, \code{measout}, the
 For grouped time series, (e.g., per person) clean numeric measurements
 collected longitudinally, first, removing outliers, then examining within-
 person measurement mean and standard deviation, if measurement is found to be
-above \code{SDthreshold}, then measurement is set to missing (\code{NA}).
+above \code{sd_threshold}, then measurement is set to missing (\code{NA}).
 Based on work by Littman et al. 2012.
 }
 \examples{
