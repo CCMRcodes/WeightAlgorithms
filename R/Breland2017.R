@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------#
 # US Dept. of Veterans Affairs - Corporate Data Warehouse
 # Weight Measurement "Cleaning" Algorithm - Breland et al. 2017 version
-# 
+#
 # Author: Richard Ryan Evans
 # Development Start Date: 11/07/2018
 #
@@ -11,41 +11,73 @@
 # veterans. Journal of General Internal Medicine [electronic article].
 # 2017;32(1):11-17. (http://link.springer.com/10.1007/s11606-016-3962-1).
 # (Accessed December 6, 2019)
-# 
+#
 # Rationale: For grouped time series, (e.g., per person)
 #            Examine ratios of forward and backward measurements per person,
 #            if measurement meets outlier criteria, the measurement is removed
-#            Based on work by Breland et al. 2017
 #-----------------------------------------------------------------------------#
 
-#' @title Breland 2017 Measurment Cleaning Algorithm
-#' @param DF object of class data.frame, containing `id` and `measures`
-#' @param id string corresponding to the name of the column of patient identifiers in `DF`
-#' @param measures string corresponding to the name of the column of measurements in `DF`
-#' @param tmeasures string corresponding to the name of the column of measurement collection dates or times in `DF`. If `tmeasures` is a date object, there may be more than one weight on the same day, if it precise datetime object, there may not be more than one weight on the same day
-#' @param outliers object of type `list` with numeric inputs corresponding to the upper and lower bound for each time entry. Default is `list(LB = 75, UB = 700)`
-#' @param RatioThresholds list of 2 lists, 1 for each ratio (prior and post measurements), with numeric inputs corresponding to the lower bound and upper bound for flagging erroneous measurements. Default lower bound is 0.67 and upper bound 1.50, same as Breland et al. 2017
-Breland2017.f <- function(DF,
-                          id,
-                          measures,
-                          tmeasures,
-                          outliers = list(LB = 75, UB = 700),
-                          RatioThresholds = list(Ratio1 = list(low = 0.67, 
-                                                               high = 1.50),
-                                                 Ratio2 = list(low = 0.67, 
-                                                               high = 1.50))) {
-  
-  if (!require(dplyr))      install.packages("dplyr")
-  if (!require(data.table)) install.packages("data.table")
-  
+#' Breland et al. 2017 Weight Cleaning Algorithm
+#'
+#' \code{breland} returns input data frame with processed data as additional
+#' columns.
+#'
+#' @param df object of class data.frame, containing \code{id} and
+#'   \code{measures}.
+#' @param id string corresponding to the name of the column of patient
+#'   identifiers in \code{df}.
+#' @param measures string corresponding to the name of the column of
+#'   measurements in \code{df}.
+#' @param tmeasures string corresponding to the name of the column of
+#'   measurement collection dates or times in \code{df}. If \code{tmeasures} is
+#'   a date object, there may be more than one weight on the same day, if it
+#'   precise datetime object, there may not be more than one weight on the same
+#'   day.
+#' @param outliers object of type \code{list} with numeric inputs corresponding
+#'   to the upper and lower bound for each time entry. Default is
+#'   \code{list(LB = 75, UB = 700)}.
+#' @param ratio_thresholds list of 2 lists, 1 for each ratio (prior and post
+#'   measurements), with numeric inputs corresponding to the lower bound and
+#'   upper bound for flagging erroneous measurements. Default lower bound is
+#'   0.67 and upper bound 1.50, same as Breland et al. 2017.
+#' @param add_internals logical, adds additional columns to output data frame
+#'   detailing the backward, forward, ratios, and ratio indicators used
+#'   interally to process the data. Defaults to FALSE.
+#' @return if add_internals is FALSE, returns input data frame with processed
+#'   data as an additional column \code{measout}. if add_internals is TRUE then
+#'   it returns the input data frame with processed data \code{measout} and
+#'   columns described in \code{add_internals}.
+#' @examples
+#' library(dplyr)
+#' data(cdw32)
+#'
+#' breland_df <- breland(
+#'    df = cdw32,
+#'    id = "id",
+#'    measures = "Weight",
+#'    tmeasures = "WeightDate"
+#'   )
+#'
+#' # dplyr::glimpse(breland_df)
+breland <- function(df,
+                    id,
+                    measures,
+                    tmeasures,
+                    outliers = list(LB = 75, UB = 700),
+                    ratio_thresholds = list(Ratio1 = list(low = 0.67,
+                                                         high = 1.50),
+                                            Ratio2 = list(low = 0.67,
+                                                          high = 1.50)),
+                    add_internals = FALSE) {
+
   tryCatch(
-    if (!is.numeric(DF[[measures]])) {
+    if (!is.numeric(df[[measures]])) {
       stop(
         print("measure data must be a numeric vector")
       )
     }
   )
-  
+
   tryCatch(
     if (!is.list(outliers)) {
       stop(
@@ -53,48 +85,63 @@ Breland2017.f <- function(DF,
       )
     }
   )
-  
+
   # convert to data.table
-  DT <- data.table::as.data.table(DF)
+  DT <- data.table::as.data.table(df)
   setkeyv(DT, id)
-  
+
   # Round to 2 decimal places
-  DT[, measures_aug_ := round(get(measures), 2)]
-  
+  measout <- NULL
+  DT[, `:=`(measout = round(get(measures), 2))][]
+
   # Set outliers to NA
   DT[,
-     measures_aug_ := ifelse(measures_aug_ < outliers[[1]]
-                             | measures_aug_ > outliers[[2]], 
-                             NA,
-                             measures_aug_)
-     ]
-  
+     `:=`(
+       measout = ifelse(
+         measout < outliers[[1]] | measout > outliers[[2]],
+         NA,
+         measout
+       )
+      )
+     ][]
+
   # Ratio1: current weight/prior weight (backward)
   # Ratio2: current weight/next weight (forward)
   setorderv(DT, c(id, tmeasures))
-  
+
   # fast lead and lag with data.table
-  DT[, "backward" := shift(measures_aug_, 1, NA, "lag"), by = id]
-  DT[, "forward"  := shift(measures_aug_, 1, NA, "lead"), by = id]
-  
+  backward <- forward <- NULL
+  DT[, `:=`(backward = shift(measout, 1, NA, "lag")),  by = id][]
+  DT[, `:=`(forward  = shift(measout, 1, NA, "lead")), by = id][]
+
+  R1_ind <- R2_ind <- NULL
+
   DT <- DT %>%
-    mutate(
-      Ratio1 = measures_aug_ / backward,
-      R1_ind = case_when(
-        Ratio1 <= RatioThresholds[[1]][[1]] ~ -1L,
-        Ratio1 >= RatioThresholds[[1]][[2]] ~  1L,
+    dplyr::mutate(
+      Ratio1 = measout / backward,
+      R1_ind = dplyr::case_when(
+        Ratio1 <= ratio_thresholds[[1]][[1]] ~ -1L,
+        Ratio1 >= ratio_thresholds[[1]][[2]] ~  1L,
         TRUE ~ 0L
       ),
-      Ratio2 = measures_aug_ / forward,
-      R2_ind = case_when(
-        Ratio2 <= RatioThresholds[[2]][[1]] ~ -1L,
-        Ratio2 >= RatioThresholds[[2]][[2]] ~  1L,
+      Ratio2 = measout / forward,
+      R2_ind = dplyr::case_when(
+        Ratio2 <= ratio_thresholds[[2]][[1]] ~ -1L,
+        Ratio2 >= ratio_thresholds[[2]][[2]] ~  1L,
         TRUE ~ 0L
       ),
-      measures_aug_ = ifelse((R1_ind == 1 & R2_ind == 1) |
+      measout = ifelse((R1_ind == 1 & R2_ind == 1) |
                                (R1_ind == -1 & R2_ind == -1),
-                             NA,
-                             measures_aug_)
+                        NA,
+                        measout)
     )
-  DT
+
+  if (add_internals) {
+    as.data.frame(DT)
+  } else {
+    DT %>%
+      dplyr::select(-c(backward:R2_ind)) %>%
+      as.data.frame()
+  }
 }
+
