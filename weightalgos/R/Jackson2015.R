@@ -7,9 +7,9 @@
 #
 # Algorithm reconstructed from methods section in the publication:
 # Jackson SL, Long Q, Rhee MK, et al. Weight loss and incidence of diabetes with
-# the Veterans Health Administration MOVE! Lifestyle change programme: An
+# the Veterans Health Administration MOVE! Lifestyle change program: An
 # observational study. The Lancet Diabetes & Endocrinology [electronic article].
-# 2015;3(3):173–180.
+# 2015;3(3):173-180.
 # (https://linkinghub.elsevier.com/retrieve/pii/S2213858714702670). (Accessed
 # December 9, 2019)
 #
@@ -19,7 +19,7 @@
 #            within that window. Based on work by Jackson et al. 2015
 #-----------------------------------------------------------------------------#
 
-#' Jackson 2015 Measurment Cleaning Algorithm
+#' Jackson 2015 Measurement Cleaning Algorithm
 #'
 #' For grouped time series, (e.g., per person), \code{jackson} removes outliers,
 #' then apply windows to each measurement within each block of time/window, then
@@ -29,7 +29,7 @@
 #' @param df object of class \code{data.frame}, containing \code{id} and
 #'   \code{measures}.
 #' @param id string corresponding to the name of the column of patient
-#'   identifers in \code{df}.
+#'   identifiers in \code{df}.
 #' @param measures string corresponding to the name of the column of
 #'   measurements in \code{df}.
 #' @param tmeasures string corresponding to the name of the column of
@@ -37,11 +37,11 @@
 #'   a date object, there may be more than one weight on the same day, if it is
 #'   a precise datetime object, there may not be more than one weight on the
 #'   same day. Just something to look out for.
-#' @param startPoint string corresponding to the name of the column in \code{df}
-#'   holding the time at which subsequent measurement dates will be assessed,
-#'   should be the same for each person. Eg., if t = 0 (\code{t[1]}) corresponds
-#'   to an index visit held by the variable \code{VisitDate}, then
-#'   \code{startPoint} should be set to \code{VisitDate}.
+#' @param start_point string corresponding to the name of the column in
+#'   \code{df} holding the time at which subsequent measurement dates will be
+#'   assessed, should be the same for each person. Eg., if t = 0 (\code{t[1]})
+#'   corresponds to an index visit held by the variable \code{VisitDate}, then
+#'   \code{start_point} should be set to \code{VisitDate}.
 #' @param outliers numeric vector corresponding to the upper and lower bound for
 #'   each time entry. Default is \code{c(75, 700)}.
 #' @param t numeric vector of time points to collect measurements, e.g.
@@ -52,7 +52,7 @@
 #'   each time point in \code{t}. E.g. Jackson et al. 2015 use
 #'   \code{c(1, 90, 90, 90)} for \code{t = c(0, 182.5, 365, 730)}, implying that
 #'   the closest measurement t = 0 will be collected on the day of the
-#'   \code{startPoint}. Subsequent measurements will be collected 90 days prior
+#'   \code{start_point}. Subsequent measurements will be collected 90 days prior
 #'   to and 90 days post t0+182.5 days, t0+365 days, and t0+730 days.
 #' @return returns a data frame reduced by the inclusion criteria defined in
 #'   \code{t}, \code{windows} and \code{outliers}, and further reduced to 4
@@ -70,7 +70,7 @@
 #'    id = "id",
 #'    measures = "Weight",
 #'    tmeasures = "WeightDate",
-#'    startPoint = "VisitDate"
+#'    start_point = "VisitDate"
 #'   )
 #'
 #' # dplyr::glimpse(jackson_df)
@@ -89,7 +89,7 @@ jackson <- function(df,
                     id,
                     measures,
                     tmeasures,
-                    startPoint,
+                    start_point,
                     t = c(0, 182, 365, 730),
                     windows = c(1, 90, 90, 90),
                     outliers = c(75, 700)) {
@@ -111,14 +111,14 @@ jackson <- function(df,
   )
 
   tryCatch(
-    if (class(df[[tmeasures]])[1] != class(df[[startPoint]])[1]) {
+    if (class(df[[tmeasures]])[1] != class(df[[start_point]])[1]) {
       stop(
         print(
           paste0(
             "date type of tmeasures (",
             class(df[[tmeasures]]),
-            ") != date type of startPoint (",
-            class(df[[startPoint]])[1],
+            ") != date type of start_point (",
+            class(df[[start_point]])[1],
             ")"
           )
         )
@@ -163,7 +163,7 @@ jackson <- function(df,
   DT[,
       `:=`(
         dtime = as.numeric(difftime(get(tmeasures),
-                                    get(startPoint),
+                                    get(start_point),
                                     tz = "UTC",
                                     units = "days"))
       )
@@ -177,7 +177,7 @@ jackson <- function(df,
 
     meas_tn[[i]] <- x %>%
       as.data.frame() %>%
-      select(eval(id), dtime, measout, !!tmeasures, !!startPoint) %>%
+      select(eval(id), dtime, measout, !!tmeasures, !!start_point) %>%
       mutate(measureTime = paste0("t_", t[i]))
   }
 
@@ -189,7 +189,9 @@ jackson <- function(df,
   DT <- DT[,
            list(n = .N, mean = mean(measout, na.rm = TRUE)),
            keyby = key_cols
-           ][!is.nan(mean) | !is.na(mean)]
+           ][
+             !is.nan(mean) | !is.na(mean)
+           ]
 
   DF <- DT %>%
     rename(measout = mean) %>%
