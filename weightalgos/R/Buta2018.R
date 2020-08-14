@@ -93,7 +93,7 @@ buta <- function(df,
 
   # find max count for person i, if k = 1, remove person
   k <- NULL
-  DT[, k := .(.N), by = .(id)]
+  DT[, `:=`(k, .(.N)), by = .(id)][]
   DT <- DT[k > 1, -c("k")]
   as.data.frame(DT)
 }
