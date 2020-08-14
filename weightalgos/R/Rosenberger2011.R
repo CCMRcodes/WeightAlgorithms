@@ -118,7 +118,7 @@ rosenberger <- function(df,
 
   # convert to data.table
   DT <- data.table::as.data.table(df)
-  setkeyv(DT, id)
+  data.table::setkeyv(DT, id)
 
   # Step 1: time from start_point
   time <- NULL
@@ -144,7 +144,7 @@ rosenberger <- function(df,
   DT <- lapply(
     DT,
     function(x) {
-      x[order(id, time)][, .SD[1], by = id]
+      x[order(time)][, .SD[1], by = id]
     }
   )
 

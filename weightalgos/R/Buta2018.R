@@ -9,7 +9,7 @@
 # Buta E, Masheb R, Gueorguieva R, et al. Posttraumatic stress disorder
 # diagnosis and gender are associated with accelerated weight gain trajectories
 # in veterans during the post-deployment period. Eating Behaviors
-# [electronic article]. 2018;29:8–13.
+# [electronic article]. 2018;29-13.
 # (https://linkinghub.elsevier.com/retrieve/pii/S1471015317300521).
 # (Accessed December 6, 2019)
 #
@@ -93,7 +93,7 @@ buta <- function(df,
 
   # find max count for person i, if k = 1, remove person
   k <- NULL
-  DT[, `:=`(k, .(.N)), by = .(id)][]
+  DT[, `:=`(k = .N), by = id][]
   DT <- DT[k > 1, -c("k")]
   as.data.frame(DT)
 }
