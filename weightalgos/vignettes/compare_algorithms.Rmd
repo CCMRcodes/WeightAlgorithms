@@ -158,7 +158,7 @@ goodrich_df <- goodrich(df = samp,
                         id = "id",
                         measures = "Weight_aug",
                         tmeasures = "WeightDate",
-                        startPoint = "VisitDate")
+                        start_point = "VisitDate")
 
 #----------------------------- Chan & Raffa 2017 -----------------------------#
 
@@ -173,7 +173,7 @@ jackson_df <- jackson(df = samp,
                       id = "id",
                       measures = "Weight_aug",
                       tmeasures = "WeightDate",
-                      startPoint = "VisitDate")
+                      start_point = "VisitDate")
 
 #--------------------------------- Buta 2018 ---------------------------------#
 
@@ -191,7 +191,7 @@ kazerooni_df <- kazerooni(df = samp,
                           id = "id",
                           measures = "Weight_aug",
                           tmeasures = "WeightDate",
-                          startPoint = "VisitDate")
+                          start_point = "VisitDate")
 
 #-------------------------------- Noel 2012 ----------------------------------#
 
@@ -205,7 +205,7 @@ noel_df <- noel(df = samp,
 rosenberger_df <- rosenberger(df = samp,
                               id = "id", 
                               tmeasures = "WeightDate",
-                              startPoint = "VisitDate",
+                              start_point = "VisitDate",
                               pad = 1)
 ```
 
