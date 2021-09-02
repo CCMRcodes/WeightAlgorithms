@@ -6,10 +6,10 @@
 # Development Start Date: 11/07/2018
 #
 # Algorithm reconstructed from methods section in the publication:
-# Chan SH, Raffa SD. Examining the dose–response relationship in the veterans
-# health administration’s move!® weight management program: A nationwide
+# Chan SH, Raffa SD. Examining the dose-response relationship in the veterans
+# health administration's move! weight management program: A nationwide
 # observational study. Journal of General Internal Medicine
-# [electronic article]. 2017;32(S1):18–23.
+# [electronic article]. 2017;32(S1):18-23.
 # (http://link.springer.com/10.1007/s11606-017-3992-3).
 # (Accessed December 6, 2019)
 #

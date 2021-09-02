@@ -7,7 +7,7 @@
 #
 # Algorithm reconstructed from methods section in the publication:
 # Kazerooni R, Lim J. Topiramate-associated weight loss in a veteran population.
-# Military Medicine [electronic article]. 2016;181(3):283–286.
+# Military Medicine [electronic article]. 2016;181(3):283-286.
 # (https://academic.oup.com/milmed/article/181/3/283-286/4159223). (Accessed
 # December 6, 2019)
 #

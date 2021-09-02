@@ -8,7 +8,7 @@
 # Algorithm reconstructed from methods section in the publication:
 # Maguen S, Madden E, Cohen B, et al. The relationship between body mass index
 # and mental health among iraq and afghanistan veterans. Journal of General
-# Internal Medicine [electronic article]. 2013;28(S2):563–570.
+# Internal Medicine [electronic article]. 2013;28(S2):563-570.
 # (http://link.springer.com/10.1007/s11606-013-2374-8).
 # (Accessed December 6, 2019)
 #

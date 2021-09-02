@@ -8,7 +8,7 @@
 # Algorithm reconstructed from methods section in the publication:
 # Rosenberger PH, Ning Y, Brandt C, et al. BMI trajectory groups in veterans of
 # the iraq and afghanistan wars. Preventive Medicine [electronic article].
-# 2011;53(3):149–154.
+# 2011;53(3):149-154.
 # (https://linkinghub.elsevier.com/retrieve/pii/S0091743511002465).
 # (Accessed December 6, 2019)
 #
