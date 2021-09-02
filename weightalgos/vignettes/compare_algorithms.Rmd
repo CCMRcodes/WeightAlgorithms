@@ -132,10 +132,10 @@ littman_df <- littman(df = samp,
 
 #------------------------------ Maciejewski 2016 -----------------------------#
 
-maciejewski_df <- maciejewski2016(df = samp,
-                                  id = "id",
-                                  tmeasures = "WeightDate",
-                                  measures = "Weight_aug")
+maciejewski_df <- maciejewski(df = samp,
+                              id = "id",
+                              tmeasures = "WeightDate",
+                              measures = "Weight_aug")
 
 #-------------------------------- Breland 2017 -------------------------------#
 
