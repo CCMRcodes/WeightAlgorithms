@@ -101,6 +101,7 @@ meas_collect <- function(df,
   tmeasures  <- rlang::sym(tmeasures)
   start_point <- rlang::sym(start_point)
 
+  dtime <- NULL
   df <- df %>%
     mutate(
       dtime = as.numeric(
@@ -197,6 +198,7 @@ flag_out <- function(df,
   a <- rlang::sym(measures)
   meas_updated <- rlang::quo_name("measout")
 
+  UB <- LB <- NULL
   df <- df %>%
     left_join(bounds.df, by = c("measureTime" = "t")) %>%
     mutate(!!meas_updated := ifelse(!!a < LB | !!a > UB, NA, !!a)) %>%
