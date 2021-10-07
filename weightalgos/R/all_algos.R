@@ -15,13 +15,13 @@
 #' a patient identifier, \code{id}; the measures to clean \code{measures}
 #' (e.g., weight, continuous lab data, etc.); a recorded time at which the
 #' measure was taken \code{tmeasures}. Some require an index date,
-#' \code{StartPoint} (Janney *et al.* 2016, Goodrich *et al.* 2016, Jackson
+#' \code{start_point} (Janney *et al.* 2016, Goodrich *et al.* 2016, Jackson
 #' *et al.* 2015, Kazerooni & Lim 2016, Rosenberger *et al.* 2011), Maguen
 #' *et al.* 2013 adjusts for optional demographic variables (e.g., age, sex).
 #' Buta *et al.* 2018 stands out, requiring BMI measurements as the unit of
 #' measurement \code{measures}. Thus, in order to fully utilize this function,
 #' \code{df} needs to have at least \code{id}, \code{measures},
-#' \code{tmeasures}, \code{StartPoint}, and BMI.
+#' \code{tmeasures}, \code{start_point}, and BMI.
 #'
 #' @param df \code{data.frame} holding raw (input) measurements.
 #' @param id string corresponding to the name of the column of group identifiers
@@ -34,7 +34,7 @@
 #'   holding the time at which subsequent measurement dates will be assessed,
 #'   should be the same for each group. Eg., if \code{t = 0} (\code{t[1]})
 #'   corresponds to an index visit held by the variable \code{VisitDate}, then
-#'   \code{startPoint} should be set to \code{VisitDate}.
+#'   \code{start_point} should be set to \code{VisitDate}.
 #' @param variables Optional. Specific to the Maguen *et al.* 2013 algorithm,
 #'   character vector describing the terms in \code{df} to include on the RHS
 #'   of the internal mixed model. E.g., \code{c("Age", "Gender")} would
