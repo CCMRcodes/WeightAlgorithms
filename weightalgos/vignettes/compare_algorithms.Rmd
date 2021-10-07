@@ -121,7 +121,7 @@ janney_df <- janney(df = samp,
                     id = "id",
                     measures = "Weight_aug",
                     tmeasures = "WeightDate",
-                    startPoint = "VisitDate")
+                    start_point = "VisitDate")
 
 #-------------------------------- Littman 2012 -------------------------------#
 
