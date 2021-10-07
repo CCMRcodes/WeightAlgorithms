@@ -39,11 +39,11 @@
 #'   in \code{df}, e.g., numeric weight data if using to clean weight data.
 #' @param tmeasures string corresponding to the name of the column of measure
 #'   dates and/or times in \code{df}.
-#' @param startPoint string corresponding to the name of the column in \code{df}
+#' @param start_point string corresponding to the name of the column in \code{df}
 #'   holding the time at which subsequent measurement dates will be assessed,
 #'   should be the same for each person. Eg., if \code{t = 0} (\code{t[1]})
 #'   corresponds to an index visit held by the variable \code{VisitDate}, then
-#'   \code{startPoint} should be set to \code{VisitDate}.
+#'   \code{start_point} should be set to \code{VisitDate}.
 #' @param t numeric vector of time points to collect measurements, eg.
 #'   \code{c(0, 182.5, 365)} for measure collection at \code{t = 0},
 #'   \code{t = 180} (6 months from \code{t = 0}), and \code{t = 365} (1 year
@@ -53,7 +53,7 @@
 #'   each time point in \code{t}. Eg. Janney et al. 2016 use
 #'   \code{c(30, 60, 60)} for \code{t} of \code{c(0, 182.5, 365)}, implying that
 #'   the closest measurement \code{t = 0} will be collected 30 days prior to and
-#'   30 days post \code{startPoint}. Subsequent measurements will be collected
+#'   30 days post \code{start_point}. Subsequent measurements will be collected
 #'   60 days prior to and 60 days post t0+182.5 days, and t0+365 days.
 #' @return returns a data frame reduced by the inclusion criteria defined in
 #'   \code{t} and \code{windows}, the resultant dimensions beng
@@ -62,19 +62,19 @@ meas_collect <- function(df,
                          id,
                          measures,
                          tmeasures,
-                         startPoint,
+                         start_point,
                          t = c(0, 182, 365),
                          windows = c(30, 60, 60)) {
 
   tryCatch(
-    if (class(df[[tmeasures]])[1] != class(df[[startPoint]])[1]) {
+    if (class(df[[tmeasures]])[1] != class(df[[start_point]])[1]) {
       stop(
         print(
           paste0(
             "date type of tmeasures (",
             class(df[[tmeasures]]),
-            ") != date type of startPoint (",
-            class(df[[startPoint]])[1],
+            ") != date type of start_point (",
+            class(df[[start_point]])[1],
             ")"
           )
         )
@@ -99,14 +99,13 @@ meas_collect <- function(df,
   )
 
   tmeasures  <- rlang::sym(tmeasures)
-  startPoint <- rlang::sym(startPoint)
+  start_point <- rlang::sym(start_point)
 
-  dtime <- NULL
   df <- df %>%
     mutate(
       dtime = as.numeric(
         difftime(
-          !!tmeasures, !!startPoint,
+          !!tmeasures, !!start_point,
           tz = "utc", units = "days"
         )
       )
@@ -198,7 +197,6 @@ flag_out <- function(df,
   a <- rlang::sym(measures)
   meas_updated <- rlang::quo_name("measout")
 
-  UB <- LB <- NULL
   df <- df %>%
     left_join(bounds.df, by = c("measureTime" = "t")) %>%
     mutate(!!meas_updated := ifelse(!!a < LB | !!a > UB, NA, !!a)) %>%
@@ -223,11 +221,11 @@ flag_out <- function(df,
 #'   \code{df}, e.g., numeric weight data if using to clean weight data.
 #' @param tmeasures string corresponding to the name of the column of measure
 #'   dates and/or times in \code{df}.
-#' @param startPoint string corresponding to the name of the column in \code{df}
+#' @param start_point string corresponding to the name of the column in \code{df}
 #'   holding the time at which subsequent measurement dates will be assessed,
 #'   should be the same for each group. Eg., if \code{t = 0} (\code{t[1]})
 #'   corresponds to an index visit held by the variable \code{VisitDate}, then
-#'   \code{startPoint} should be set to \code{VisitDate}.
+#'   \code{start_point} should be set to \code{VisitDate}.
 #' @param t numeric vector of time points to collect measurements, eg.
 #'   \code{c(0, 182.5, 365)} for measure collection at \code{t = 0},
 #'   \code{t = 180} (6 months from \code{t = 0}), and \code{t = 365} (1 year
@@ -237,7 +235,7 @@ flag_out <- function(df,
 #'   each time point in \code{t}. Eg. Janney et al. 2016 use
 #'   \code{c(30, 60, 60)} for \code{t} of \code{c(0, 182.5, 365)}, implying that
 #'   the closest measurement \code{t = 0} will be collected 30 days prior to and
-#'   30 days post startPoint. Subsequent measurements will be collected 60 days
+#'   30 days post start_point. Subsequent measurements will be collected 60 days
 #'   prior to and 60 days post t0+182.5 days, and t0+365 days.
 #' @param outliers optional. object of type \code{list} with numeric inputs
 #'   corresponding to the upper and lower bound for each time entry in parameter
@@ -258,7 +256,7 @@ flag_out <- function(df,
 #'    id = "id",
 #'    measures = "Weight",
 #'    tmeasures = "WeightDate",
-#'    startPoint = "VisitDate"
+#'    start_point = "VisitDate"
 #'   )
 #'
 #' # dplyr::glimpse(janney_df)
@@ -286,7 +284,7 @@ janney <- function(df,
                    id,
                    measures,
                    tmeasures,
-                   startPoint,
+                   start_point,
                    t = c(0, 182.5, 365),
                    windows = c(30, 60, 60),
                    outliers = list(LB = c(91, 72, 72),
@@ -296,7 +294,7 @@ janney <- function(df,
                                     id = id,
                                     measures = measures,
                                     tmeasures = tmeasures,
-                                    startPoint = startPoint,
+                                    start_point = start_point,
                                     t = t,
                                     windows = windows)
 
